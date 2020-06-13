@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Default theme of app. -->
+  <style name="BaseTheme" parent="@android:style/Theme.Material">
+    <item name="android:colorPrimary">@color/primaryColor</item>
+    <item name="android:colorAccent">@color/accentColor</item>
+    <item name="android:statusBarColor">@color/primaryDarkColor</item>
+  </style>
+
+  <!-- Use this Style to change an Activity to Dialog. -->
+  <style name="BaseTheme.DialogActivity" parent="@android:style/Theme.Material.Dialog">
+  </style>
+
+  <!-- Use this Style if you want to hide ActionBar and app label -->
+  <style name="BaseTheme.NoActionBar" parent="BaseTheme">
+    <item name="android:windowActionBar">false</item>
+    <item name="android:windowNoTitle">true</item>
+  </style>
+</resources>
