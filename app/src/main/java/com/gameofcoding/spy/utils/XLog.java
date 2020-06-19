@@ -4,13 +4,14 @@ import java.io.File;
 
 public class XLog {
     private static final String TAG = "XLog";
-    private static File mDir;
-    private static LogManager mLogManager;
     public static final int VERBOSE = 2;
     public static final int DEBUG = 3;
     public static final int INFO = 4;
     public static final int WARN = 5;
     public static final int ERROR = 6;
+    private static File mDir;
+    private static LogManager mLogManager;
+
     public static void init(File dir) {
 	mDir = dir;
 	mLogManager = new LogManager(mDir);
@@ -36,7 +37,9 @@ public class XLog {
 
     public static void e(String tag, String msg, Throwable tr) {printLog(ERROR, tag, msg, tr);}
 
-    public static void printLog(int priority, String tag, String msg) {printLog(priority, tag, msg, null);}
+    public static void printLog(int priority, String tag, String msg) {
+	printLog(priority, tag, msg, null);
+    }
 
     public static void printLog(int priority, String tag, String msg, Throwable tr) {
 	if(mLogManager == null) {
@@ -45,7 +48,7 @@ public class XLog {
 	    File defDir = new File("/sdcard/SickBoyDir/temp");
 	    mLogManager = new LogManager(defDir);
 	    w(TAG, "XLog.init(File) not called, using default path '" + defDir.toString() + "'.");
-	}	    
+	}
 	switch(priority) {
 	case VERBOSE:
 	    if(tr != null)

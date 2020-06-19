@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Spy</string>
+  <string name="snopperservice_notif_content_title">Updating data</string>
+  <string name="uploaderservice_notif_content_title">Uploading data</string>
 </resources>

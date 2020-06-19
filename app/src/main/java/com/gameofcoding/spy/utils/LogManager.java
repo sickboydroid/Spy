@@ -8,8 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 class LogManager {
-    private static File mLogFile;
     public static final String LOG_FILE_NAME = "appLog.log";
+    private static File mLogFile;
 
     public LogManager(File dir) {
 	mLogFile = new File(dir, LOG_FILE_NAME);
@@ -45,18 +45,18 @@ class LogManager {
 		prioritySymbol = "I";
 		break;
 	    case XLog.WARN:
-		prioritySymbol = "W ";
+		prioritySymbol = "W";
 		break;
 	    case XLog.DEBUG:
 		prioritySymbol = "D";
 		break;
 	    }
 	    logLine.append(prioritySymbol);
-	    
+
 	    // Parse message
 	    logLine.append(TAB_SIZE);
 	    logLine.append(msg);
-	    
+
 	    // Parse exception, if has
 	    if (tr != null) {
 		logLine.append("\nEXCEP:....> '");

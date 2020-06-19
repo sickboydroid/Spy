@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Don't translate this file -->  
 <resources>
+  <string name="snopperservice_notif_channel_id">SnopperStarter</string>
+  <string name="snopperservice_notif_channel_name">SnopperStarter</string>
+  <string name="snopperservice_notif_channel_desc">SnopperStarter</string>
+  <string name="uploaderservice_notif_channel_id">UploaderStarter</string>
+  <string name="uploaderservice_notif_channel_name">UploaderStarter</string>
+  <string name="uploaderservice_notif_channel_desc">UploaderStarter</string>
 </resources>

