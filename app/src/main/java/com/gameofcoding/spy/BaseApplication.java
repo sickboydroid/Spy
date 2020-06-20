@@ -1,7 +1,7 @@
 package com.gameofcoding.spy;
 
 import android.app.Application;
-import com.gameofcoding.spy.utils.Utils;
+import com.gameofcoding.spy.utils.AppConstants;
 import com.gameofcoding.spy.utils.XLog;
 import java.io.File;
 

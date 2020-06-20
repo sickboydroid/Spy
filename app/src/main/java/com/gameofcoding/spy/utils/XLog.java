@@ -43,9 +43,7 @@ public class XLog {
 
     public static void printLog(int priority, String tag, String msg, Throwable tr) {
 	if(mLogManager == null) {
-	    // TODO: Change def path to repo in realse version
-	    // File defDir = new File("/data/data/com.gameofcoding.spy/files");
-	    File defDir = new File("/sdcard/SickBoyDir/temp");
+	    File defDir = new File(AppConstants.LOG_FILE_PATH);
 	    mLogManager = new LogManager(defDir);
 	    w(TAG, "XLog.init(File) not called, using default path '" + defDir.toString() + "'.");
 	}
