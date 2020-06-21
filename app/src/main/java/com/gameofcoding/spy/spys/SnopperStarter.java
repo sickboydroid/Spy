@@ -16,14 +16,23 @@ public class SnopperStarter {
     }
 
     public void start() {
-	if(mContext == null)
+	if(mContext == null) {
 	    XLog.e(TAG, "start(): Could not start alarm as passed 'Context' is null.");
+	    return;
+	}
+        Intent intent = new Intent(mContext, SnopperAlarm.class);
+        PendingIntent pendingIntent =
+	    PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.FLAG_NO_CREATE);
+
+	// Check if alarm is already running
+	if (pendingIntent == null) {
+	    XLog.d(TAG, "Not starting SnopperAlarm (already active)");
+	    return;
+	}
 
 	// Set alarm that repeats after every 24 hours.
 	// FIXME: 1 hr.  -> 12 hr. time
         AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(mContext, SnopperAlarm.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
 			3_600_000, pendingIntent);
     }

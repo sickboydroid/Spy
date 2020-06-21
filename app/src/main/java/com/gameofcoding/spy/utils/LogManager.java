@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 class LogManager {
     public static final String LOG_FILE_NAME = "appLog.log";
@@ -24,7 +25,7 @@ class LogManager {
 	StringBuilder logLine = new StringBuilder();
 	try {
 	    // Parse log date and time
-	    DateFormat dateFormat = new SimpleDateFormat("dd-MM HH:mm:ss");
+	    DateFormat dateFormat = new SimpleDateFormat("dd-MM HH:mm:ss", Locale.getDefault());
 	    logLine.append(dateFormat.format(new Date()));
 
 	    // Parse tag
