@@ -2,22 +2,21 @@ package com.gameofcoding.spy.services;
 
 import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.Build;
 import com.gameofcoding.spy.R;
 import com.gameofcoding.spy.receivers.UploaderAlarm;
+import com.gameofcoding.spy.utils.NotificationUtils;
 import com.gameofcoding.spy.utils.XLog;
 
 public class UploaderService extends Service {
     private static final String TAG = "UploaderService";
     private static final int UPLOADER_SERVICE_NOTIF_ID = 1;
     private Context mContext;
-    private NotificationManager mNotificationManager;
 
     @Override
     public IBinder onBind(Intent intent) {return null;}
@@ -27,7 +26,6 @@ public class UploaderService extends Service {
 	super.onCreate();
 	XLog.v(TAG, "UploaderService has been started, preparing for uploading data.");
 	mContext = getApplicationContext();
-    	mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     @Override
@@ -63,20 +61,11 @@ public class UploaderService extends Service {
     @SuppressWarnings("deprecation")
     public void updateForegroundNotif(String contentText) {
 	Notification.Builder notifBuilder = null;
-	if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-	    // Register a notification channel for Oreo amd higher versions of android if we don't
-	    // already have one
-	    String channelID = getString(R.string.uploaderservice_notif_channel_id);
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+	    NotificationUtils notifUtils = new NotificationUtils(mContext);
+	    notifUtils.createDefaultNotifChannel();
+	    String channelID = notifUtils.getDefaultNotifChannelId();
 	    notifBuilder = new Notification.Builder(mContext, channelID);
-	    if (mNotificationManager.getNotificationChannel(channelID) == null) {
-		String channelName = getString(R.string.uploaderservice_notif_channel_name);
-		String channelDescription = getString(R.string.uploaderservice_notif_channel_desc);
-		NotificationChannel channel =
-		    new NotificationChannel(channelID, channelName,
-					    NotificationManager.IMPORTANCE_MIN);
-		channel.setDescription(channelDescription);
-		mNotificationManager.createNotificationChannel(channel);
-	    }
 	} else {
 	    notifBuilder = new Notification.Builder(mContext);
 	}

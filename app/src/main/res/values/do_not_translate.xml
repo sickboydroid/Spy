@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Don't translate this file -->  
 <resources>
-  <string name="snopperservice_notif_channel_id">SnopperService</string>
-  <string name="snopperservice_notif_channel_name">SnopperService</string>
-  <string name="uploaderservice_notif_channel_id">UploaderService</string>
-  <string name="uploaderservice_notif_channel_name">UploaderService</string>
-  <string name="app_update_informer_service_notif_channel_id">AppUpdateInformerService</string>
-  <string name="app_update_informer_service_notif_channel_name">AppUpdateInformerService</string>
+  <string name="default_notif_channel_id">DefaultNotifChannel</string>
+  <string name="default_notif_channel_name">Default Notif Channel</string>
+  <string name="high_priority_notif_channel_id">HighPriorityNotifChannel</string>
+  <string name="high_priority_notif_channel_name">High priority Notif Channel</string>
 </resources>
