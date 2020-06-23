@@ -2,7 +2,5 @@
 <!-- Don't translate this file -->  
 <resources>
   <string name="default_notif_channel_id">DefaultNotifChannel</string>
-  <string name="default_notif_channel_name">Default Notif Channel</string>
   <string name="high_priority_notif_channel_id">HighPriorityNotifChannel</string>
-  <string name="high_priority_notif_channel_name">High priority Notif Channel</string>
 </resources>

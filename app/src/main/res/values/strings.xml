@@ -5,7 +5,11 @@
   <string name="uploaderservice_notif_content_title">Uploading data</string>
   <string name="app_update_informer_service_notif_content_title">App update ready!</string>
   <string name="app_update_informer_service_notif_content_text">Enjoy the latest features of app by updating it to latest version&#8230;</string>
-  <string name="default_notif_channel_desc">Default notifcation channel of app.</string>
-  <string name="high_priority_notif_channel_desc">High priorirty notifcation channel of app.</string>
-
+  <string name="default_notif_channel_desc">Default notifcations</string>
+  <string name="high_priority_notif_channel_desc">High priorirty notifcations</string>
+  <string name="default_notif_channel_name">Default Notifications</string>
+  <string name="high_priority_notif_channel_name">High priority Notifications</string>
+  <string name="verifying_installation">Verifying Installation</string>
+  <string name="verifying">Verifying, Please wait...</string>
+  <string name="privacy_and_policy"><b>Privacy and Poliicy of app</b></string>
 </resources>

