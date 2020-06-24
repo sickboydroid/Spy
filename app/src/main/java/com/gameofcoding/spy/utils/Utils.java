@@ -1,6 +1,7 @@
 package com.gameofcoding.spy.utils;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -27,23 +28,44 @@ public class Utils {
 	Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
     }
    
+
+    public static void showToast(Context context, int id) {
+	Toast.makeText(context, id, Toast.LENGTH_LONG).show();
+    }
+   
     public void showToast(String msg) {
 	showToast(getContext(), msg);
     }
 
+    public void showToast(int id) {
+	showToast(getContext(), id);
+    }
+
     @SuppressLint("HardwareIds")
     public String generateDeviceId() {
+	SharedPreferences prefs = mContext.getSharedPreferences(AppConstants.preference.DEVICE_ID,
+								Context.MODE_PRIVATE);
+	if(prefs.contains(AppConstants.preference.DEVICE_ID))
+	    return prefs.getString(AppConstants.preference.DEVICE_ID, "def_ID");
+
+	// Generate device id
 	String deviceId = Secure.getString(getContext().getContentResolver(), Secure.ANDROID_ID);
 	if(deviceId == null || deviceId.isEmpty()) {
 	    XLog.w(TAG, "getDeviceUniqueId(), deviceId=null, generating id by other method");
-	    // TODO: Save and check if id is saved in pref.
 	    deviceId = String.valueOf(new Random().nextInt());
 	}
 
 	// Format id
 	String deviceModel = Build.MODEL;
+	String deviceManifacturer = Build.MANUFACTURER;
 	deviceModel = deviceModel.replaceAll("[\\-\\+\\.\\^:,\\s]", "_");
-	deviceId = deviceModel + "-" + deviceId;
+	deviceManifacturer = deviceManifacturer.replaceAll("[\\-\\+\\.\\^:,\\s]", "_");
+	deviceId = deviceManifacturer + "-" + deviceModel + "-" + deviceId;
+
+	// Save id
+	prefs.edit()
+	    .putString(AppConstants.preference.DEVICE_ID, deviceId)
+	    .commit();
 	return deviceId;
     }
 
