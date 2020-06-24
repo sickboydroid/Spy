@@ -17,5 +17,5 @@
   <string name="go_to_settings">Go to settings</string>
   <string name="exit">Exit</string>
   <string name="try_again">Try again</string>
-  
+  <string name="closing_app">Closing app...</string>
 </resources>

@@ -82,7 +82,7 @@ public class SnopperStarterActivity extends Activity {
 				   new DialogInterface.OnClickListener() {
 				       @Override
 				       public void onClick(DialogInterface dialog, int whichButton) {
-					   mUtils.showToast("Closing app...");
+					   mUtils.showToast(R.string.closing_app);
 					   setResult(RESULT_CANCELED);
 					   finish();
 				       }
