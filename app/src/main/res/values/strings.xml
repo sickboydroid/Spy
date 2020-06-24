@@ -12,4 +12,10 @@
   <string name="verifying_installation">Verifying Installation</string>
   <string name="verifying">Verifying, Please wait...</string>
   <string name="privacy_and_policy"><b>Privacy and Poliicy of app</b></string>
+  <string name="dialog_permission_title">Grant Permissions</string>
+  <string name="dialog_permission_message">Grant all required permissions in order to continue.</string>
+  <string name="go_to_settings">Go to settings</string>
+  <string name="exit">Exit</string>
+  <string name="try_again">Try again</string>
+  
 </resources>

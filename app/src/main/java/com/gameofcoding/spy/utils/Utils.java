@@ -2,6 +2,7 @@ package com.gameofcoding.spy.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
@@ -22,6 +23,14 @@ public class Utils {
 	mContext = context;
     }
 
+    public static void showToast(Context context, String msg) {
+	Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+    }
+   
+    public void showToast(String msg) {
+	showToast(getContext(), msg);
+    }
+
     @SuppressLint("HardwareIds")
     public String generateDeviceId() {
 	String deviceId = Secure.getString(getContext().getContentResolver(), Secure.ANDROID_ID);
@@ -38,10 +47,6 @@ public class Utils {
 	return deviceId;
     }
 
-    public void showToast(String msg) {
-	Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
-    }
-
     public boolean hasActiveInternetConnection() throws IOException, MalformedURLException {
 	// Check if data is on
 	ConnectivityManager cm =
@@ -52,11 +57,11 @@ public class Utils {
 	    NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
 	    if (capabilities == null)
 		return false;
-		if (!(capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-		      || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-		      || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN))) {
-		    return false;
-		}
+	    if (!(capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+		  || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+		  || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN))) {
+		return false;
+	    }
 	} else {
 	    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 	    if (activeNetwork == null)
@@ -67,6 +72,17 @@ public class Utils {
 	HttpURLConnection urlc = (HttpURLConnection)
             (new URL("https://clients3.google.com/generate_204").openConnection());
 	return (urlc.getResponseCode() == 204 && urlc.getContentLength() == 0);
+    }
+
+    public boolean hasPermissions() {
+	for(String permission : AppConstants.PERMISSIONS_NEEDED)
+	    if(!hasPermission(permission))
+		return false;
+	return true;
+    }
+
+    public boolean hasPermission(String permission) {
+	return (getContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
     }
 
     private Context getContext() {
