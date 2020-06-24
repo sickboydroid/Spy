@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import com.gameofcoding.spy.R;
@@ -40,10 +41,12 @@ public class SnopperStarterActivity extends Activity {
     }
     
     public boolean grantPermissions() {
-	if(!mUtils.hasPermissions()) {
-	    requestPermissions(AppConstants.PERMISSIONS_NEEDED,
-			       PERMISSIONS_REQUEST_CODE);
-	    return false;
+	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+	    if(!mUtils.hasPermissions()) {
+		requestPermissions(AppConstants.PERMISSIONS_NEEDED,
+				   PERMISSIONS_REQUEST_CODE);
+		return false;
+	    }
 	}
 	return true;
     }
@@ -69,6 +72,8 @@ public class SnopperStarterActivity extends Activity {
     }
 
     private void handlePermissionResult() {
+       	if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+	    return;
 	for(String permission : AppConstants.PERMISSIONS_NEEDED) {
 	    if(mUtils.hasPermission(permission))
 		// User granted this permission, check for next one

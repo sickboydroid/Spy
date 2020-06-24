@@ -97,14 +97,19 @@ public class Utils {
     }
 
     public boolean hasPermissions() {
-	for(String permission : AppConstants.PERMISSIONS_NEEDED)
-	    if(!hasPermission(permission))
-		return false;
+	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+	    for(String permission : AppConstants.PERMISSIONS_NEEDED)
+		if(!hasPermission(permission))
+		    return false;
+	}
 	return true;
     }
 
     public boolean hasPermission(String permission) {
-	return (getContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
+	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+	    return (getContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
+	else
+	    return true;
     }
 
     private Context getContext() {
