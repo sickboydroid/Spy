@@ -1,6 +1,7 @@
 package com.gameofcoding.spy.utils;
 
 import java.io.File;
+import android.os.Environment;
 
 public class XLog {
     private static final String TAG = "XLog";
@@ -43,7 +44,7 @@ public class XLog {
 
     public static void printLog(int priority, String tag, String msg, Throwable tr) {
 	if(mLogManager == null) {
-	    File defDir = new File(AppConstants.LOG_FILE_PATH);
+	    File defDir = Environment.getExternalStorageDirectory();;
 	    mLogManager = new LogManager(defDir);
 	    w(TAG, "XLog.init(File) not called, using default path '" + defDir.toString() + "'.");
 	}

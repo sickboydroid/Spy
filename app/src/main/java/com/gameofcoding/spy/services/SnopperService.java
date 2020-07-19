@@ -34,14 +34,14 @@ public class SnopperService extends Service {
 	// XXX: Only for debugging
 	updateForegroundNotif("Loading contacts...");
 	synchronized(this){try{wait(5000);}catch(Exception e) {throw new RuntimeException(e);}}
-	updateForegroundNotif("Finishing");
+	updateForegroundNotif("Finishing...");
 
 	// Start alarm that repeats after 30 mins. for uploading changes
 	AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
 	PendingIntent pendingIntent = PendingIntent
 	    .getBroadcast(mContext, UPLOADER_ALARM_ID, new Intent(mContext, UploaderAlarm.class), 0);
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-				  1800_000, pendingIntent);
+				  30, pendingIntent);
 
 	// Stop service
 	stopForeground(true);

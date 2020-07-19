@@ -10,7 +10,8 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
 	super.onCreate();
-	XLog.init(new File(AppConstants.LOG_FILE_PATH));
+	// FIXME: Store log in internal app storage
+	XLog.init(getExternalCacheDir());
 
 	// Handle all app exceptions here
 	final Thread.UncaughtExceptionHandler defHandler = Thread.getDefaultUncaughtExceptionHandler();
@@ -18,7 +19,12 @@ public class BaseApplication extends Application {
 		@Override
 		public void uncaughtException(Thread th, Throwable tr) {
 		    try {
-			XLog.e(TAG, "Uncaught exception.", tr);
+			if(tr.getCause() != null)
+			    XLog.e(TAG, "Uncaught exception. [" + th.getClass().getName()
+				   + ": " + tr.getCause().toString(), tr);
+			else 
+			    XLog.e(TAG, "Uncaught exception. [" + th.getClass().getName()
+				   + ": TR.GETCASUE IS NULL" , tr);
 			XLog.e(TAG, "Killing app forcebly");
 			// Stop looping of app crash  by rethrowing the exception to default handler
 			if (defHandler != null) {

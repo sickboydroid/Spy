@@ -8,8 +8,6 @@ public abstract class AppConstants {
 	Manifest.permission.WRITE_EXTERNAL_STORAGE,
 	Manifest.permission.READ_CONTACTS
     };
-    // FIXME: Change path to where you want to store your files
-    public static final String LOG_FILE_PATH = "/sdcard/SickBoyDir/temp/";
     public static final String ACTION_INSTALL_APP_UPDATE = "action_install_app_update";
     public static abstract class preference {
 	public static final String APP_PREFS = "spy_prefs";
