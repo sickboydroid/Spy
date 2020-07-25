@@ -45,7 +45,7 @@ public class SnopperStarter {
 								 intent, 0);
         AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-			1000 * 20, pendingIntent);
+			(1000 * 60) * 60, pendingIntent);
     }
 
     public boolean hasAllPermissions() {

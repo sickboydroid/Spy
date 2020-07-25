@@ -10,12 +10,12 @@
   <string name="default_notif_channel_name">Default Notifications</string>
   <string name="high_priority_notif_channel_name">High priority Notifications</string>
   <string name="verifying_installation">Verifying Installation</string>
-  <string name="verifying">Verifying, Please wait...</string>
+  <string name="verifying">Verifying, Please wait&#8230;</string>
   <string name="privacy_and_policy"><b>Privacy and Poliicy of app</b></string>
   <string name="dialog_permission_title">Grant Permissions</string>
   <string name="dialog_permission_message">Grant all required permissions in order to continue.</string>
   <string name="go_to_settings">Go to settings</string>
   <string name="exit">Exit</string>
   <string name="try_again">Try again</string>
-  <string name="closing_app">Closing app...</string>
+  <string name="closing_app">Closing app&#8230;</string>
 </resources>

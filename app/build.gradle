@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:4.0.1'
     }
 }
 
@@ -18,7 +18,8 @@ repositories {
 
 dependencies {
     // Jgit is alternative for git
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r'
+    //implementation 'org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:3.7.1.201504261725-r'
 }
 
 // The sample build uses multiple directories to

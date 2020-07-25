@@ -64,7 +64,7 @@ public class Utils {
 	// Save id
 	prefs.edit()
 	    .putString(AppConstants.preference.DEVICE_ID, deviceId)
-	    .commit();
+	    .apply();
 	return deviceId;
     }
 

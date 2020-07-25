@@ -150,6 +150,6 @@ class RepoManager {
     }
 
     private String getRepoURI() {
-	return "https://github.com/Game-Of-Coding/Spy-Server";
+	return "https://github.com/Game-Of-Coding/Spy-Server.git";
     }
 }

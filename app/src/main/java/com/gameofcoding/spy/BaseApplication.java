@@ -1,9 +1,7 @@
 package com.gameofcoding.spy;
 
 import android.app.Application;
-import com.gameofcoding.spy.utils.AppConstants;
 import com.gameofcoding.spy.utils.XLog;
-import java.io.File;
 
 public class BaseApplication extends Application {
     private final String TAG = "BaseApplication";

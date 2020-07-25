@@ -5,6 +5,7 @@ import android.os.Environment;
 
 public class XLog {
     private static final String TAG = "XLog";
+    public static final String LOG_FILE_NAME = LogManager.LOG_FILE_NAME;
     public static final int VERBOSE = 2;
     public static final int DEBUG = 3;
     public static final int INFO = 4;

