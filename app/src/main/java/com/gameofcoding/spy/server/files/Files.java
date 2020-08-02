@@ -1,10 +1,9 @@
-package com.gameofcoding.spy.io;
+package com.gameofcoding.spy.server.files;
 
 import java.io.File;
 
-public interface FilePaths {
+public interface Files {
     public static final String DIR_USER_DATA = "user_data";
-    public static final String DIR_COMMANDS = "cmds";
     public static final String DIR_OTHERS = "others";
 
     public abstract File getRootDir();

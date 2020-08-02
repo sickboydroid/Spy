@@ -1,8 +1,9 @@
 package com.gameofcoding.spy.utils;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
+import android.app.ActivityManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
@@ -11,9 +12,12 @@ import android.os.Build;
 import android.provider.Settings.Secure;
 import android.widget.Toast;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.Random;
 
 public class Utils {
@@ -68,6 +72,33 @@ public class Utils {
 	return deviceId;
     }
 
+    /**
+     * Runs linux commands using android's built in shell.
+     *
+     * @param cmd Command that you want to execute.
+     *
+     * @return Output of given command.
+     *
+     * @throws IOException it could cause while reading output of command.
+     */
+    public static String shell(String cmd) throws IOException {
+	final Process proc = Runtime.getRuntime().exec(cmd);
+	// Reads output of command
+        final BufferedReader brStdOutput  = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+	// Reads error output (if error occured) of command
+        final BufferedReader brErrOutput  = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+        String output = "";
+        String line;
+        while ((line = brStdOutput.readLine()) != null)
+            output += "\n" + line;
+        while ((line = brErrOutput.readLine()) != null)
+            output += "\n" + line;
+	output = output.trim();
+	brStdOutput.close();
+	brErrOutput.close();
+        return output;
+    }
+
     public boolean hasActiveInternetConnection() throws IOException, MalformedURLException {
 	// Check if data is on
 	ConnectivityManager cm =
@@ -93,6 +124,22 @@ public class Utils {
 	HttpURLConnection urlc = (HttpURLConnection)
             (new URL("https://clients3.google.com/generate_204").openConnection());
 	return (urlc.getResponseCode() == 204 && urlc.getContentLength() == 0);
+    }
+
+    @SuppressWarnings("deprecation")
+    public boolean isServiceRunning(String className) {
+	ActivityManager activityManager =
+	    (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+	List<ActivityManager.RunningServiceInfo> runningServices =
+	    activityManager.getRunningServices(Integer.MAX_VALUE);
+	int size = runningServices.size();
+	for (int i = 0; i < size; i++) {
+	    if (runningServices.get(i).service.getPackageName().equals(getContext().getPackageName())) {
+		if (runningServices.get(i).service.getClassName().equals(className))
+		    return runningServices.get(i).started;
+	    }
+	}
+	return false;
     }
 
     public boolean hasPermissions() {

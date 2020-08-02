@@ -1,0 +1,43 @@
+[H[2J[3JGenerating <R.java>...
+done
+
+Compile <java> code...
+----------
+1. WARNING in /data/data/com.termux/files/home/code/android/Spy/app/src/main/java/com/gameofcoding/spy/services/SpyService.java (at line 91)
+	final File othersDir = dataFiles.getOthersDir();
+	           ^^^^^^^^^
+The value of the local variable othersDir is not used
+----------
+----------
+2. WARNING in /data/data/com.termux/files/home/code/android/Spy/app/src/main/java/com/gameofcoding/spy/utils/ZipUtils.java (at line 58)
+	BufferedInputStream bis = new BufferedInputStream(
+	                    ^^^
+Resource leak: 'bis' is never closed
+----------
+3. WARNING in /data/data/com.termux/files/home/code/android/Spy/app/src/main/java/com/gameofcoding/spy/utils/ZipUtils.java (at line 80)
+	long bytesRead = 0;
+	     ^^^^^^^^^
+The value of the local variable bytesRead is not used
+----------
+----------
+4. WARNING in /data/data/com.termux/files/home/code/android/Spy/app/src/main/java/com/gameofcoding/spy/spys/ImagesSpy.java (at line 12)
+	import java.io.FileWriter;
+	       ^^^^^^^^^^^^^^^^^^
+The import java.io.FileWriter is never used
+----------
+4 problems (4 warnings)
+done
+
+Dexing <java> code...
+done
+
+Creating <resources> archive...
+done
+
+Generating <apk> file...
+ 'classes.dex'...
+done
+
+Signing <apk> file...
+Unsupported command: -p. See --help for supported commands
+--------------------------

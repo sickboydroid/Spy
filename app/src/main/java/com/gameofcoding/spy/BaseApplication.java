@@ -3,36 +3,33 @@ package com.gameofcoding.spy;
 import android.app.Application;
 import com.gameofcoding.spy.utils.XLog;
 
+/**
+ * This is invoked before any of the other app components are invoked in app.
+ */
 public class BaseApplication extends Application {
     private final String TAG = "BaseApplication";
+    
     @Override
     public void onCreate() {
 	super.onCreate();
-	// FIXME: Store log in internal app storage
+	
+	// FIXME: Store log in internal app storage getCacheDir();
 	XLog.init(getExternalCacheDir());
 
-	// Handle all app exceptions here
+	// Handle all unhandled app exceptions here
 	final Thread.UncaughtExceptionHandler defHandler = Thread.getDefaultUncaughtExceptionHandler();
 	Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 		@Override
 		public void uncaughtException(Thread th, Throwable tr) {
 		    try {
-			if(tr.getCause() != null)
-			    XLog.e(TAG, "Uncaught exception. [" + th.getClass().getName()
-				   + ": " + tr.getCause().toString(), tr);
-			else 
-			    XLog.e(TAG, "Uncaught exception. [" + th.getClass().getName()
-				   + ": TR.GETCASUE IS NULL" , tr);
-			XLog.e(TAG, "Killing app forcebly");
+			XLog.e(TAG, "FATAL EXCEPTION (Thread=" + th.getName() + "):" , tr);
+			XLog.e(TAG, "Killing app forcefully");
 			// Stop looping of app crash  by rethrowing the exception to default handler
-			if (defHandler != null) {
+			if (defHandler != null)
 			    defHandler.uncaughtException(th, tr);
-			}
-			else {
+			else
 			    System.exit(2);
-			}
-		    }
-		    catch(Throwable trowable) {
+		    } catch(Throwable throwable) {
 			System.exit(2);
 		    }
 		}

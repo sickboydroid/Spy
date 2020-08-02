@@ -4,7 +4,6 @@ import android.Manifest;
 
 public abstract class AppConstants {
     public static final String PACKAGE_NAME = "com.gameofcoding.spy";
-    public static final int PERMISSIONS_REQUEST_CODE = 101;
     public static final String[] PERMISSIONS_NEEDED =  {
 	Manifest.permission.WRITE_EXTERNAL_STORAGE,
 	Manifest.permission.READ_CONTACTS

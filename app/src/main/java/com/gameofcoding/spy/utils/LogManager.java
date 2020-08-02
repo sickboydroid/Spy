@@ -1,6 +1,7 @@
 package com.gameofcoding.spy.utils;
 
 import java.io.File;
+import android.util.Log;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -25,12 +26,8 @@ class LogManager {
 	StringBuilder logLine = new StringBuilder();
 	try {
 	    // Parse log date and time
-	    DateFormat dateFormat = new SimpleDateFormat("dd-MM HH:mm:ss", Locale.getDefault());
+	    DateFormat dateFormat = new SimpleDateFormat("dd-MM HH:mm:ss.SSS", Locale.getDefault());
 	    logLine.append(dateFormat.format(new Date()));
-
-	    // Parse tag
-	    logLine.append(TAB_SIZE);
-	    logLine.append(tag);
 
 	    // Parse priority
 	    logLine.append(TAB_SIZE);
@@ -40,7 +37,7 @@ class LogManager {
 		prioritySymbol = "V";
 		break;
 	    case XLog.ERROR:
-		prioritySymbol = "E ";
+		prioritySymbol = "E";
 		break;
 	    case XLog.INFO:
 		prioritySymbol = "I";
@@ -54,21 +51,24 @@ class LogManager {
 	    }
 	    logLine.append(prioritySymbol);
 
+	    // Parse tag
+	    logLine.append(TAB_SIZE);
+	    if(tag.length() > 20)
+		tag = tag.substring(0, 9) + ".." + tag.substring(tag.length() - 9, tag.length());
+	    else if(tag.length() < 20) {
+		while(tag.length() != 20)
+		    tag += " ";
+	    }
+	    logLine.append(tag);
+
 	    // Parse message
 	    logLine.append(TAB_SIZE);
 	    logLine.append(msg);
 
 	    // Parse exception, if has
 	    if (tr != null) {
-		logLine.append("\nEXCEP:....> '");
-		logLine.append(tr.getClass().getName());
-		logLine.append("', ");
-		logLine.append(tr.getMessage());
-		StackTraceElement[] stackTraceElements = tr.getStackTrace();
-		for (StackTraceElement stackTraceElement : stackTraceElements) {
-		    logLine.append("\n" + TAB_SIZE);
-		    logLine.append("................:> at " + stackTraceElement.toString());
-		}
+		logLine.append("\nEXCEPTION: '");
+		logLine.append(Log.getStackTraceString(tr));
 	    }
 
 	    // Add new line so that future logs would be added in new line

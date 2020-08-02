@@ -18,7 +18,6 @@ repositories {
 
 dependencies {
     // Jgit is alternative for git
-    //implementation 'org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:3.7.1.201504261725-r'
 }
 
@@ -34,7 +33,7 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 29
     }
 
@@ -52,5 +51,9 @@ android {
         }
         androidTest.setRoot('tests')
         androidTest.java.srcDirs = ['tests/src']
+    }
+
+    lintOptions {
+	abortOnError false   
     }
 }
