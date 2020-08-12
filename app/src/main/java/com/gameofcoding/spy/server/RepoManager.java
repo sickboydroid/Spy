@@ -11,6 +11,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
@@ -113,12 +114,15 @@ class RepoManager {
 	}
 
 	// Clone Repo
+        XLog.v(TAG, "Cloning repository with specified branches...");
 	Git.cloneRepository()
 	    .setURI(getRepoURI())
 	    .setCredentialsProvider(getCredentialsProvider())
 	    .setBranchesToClone(branchesToClone)
 	    .setDirectory(dir)
+            .setProgressMonitor(progressMonitor)
 	    .call();
+        XLog.v(TAG, "Repository cloned.");
 	loadRepo(dir);
 
 	// Create remote tracking branches of cloned branches
@@ -160,6 +164,41 @@ class RepoManager {
 	return true;
     }
 
+    /**
+     * Checks whether the passed branch name exists or not (as local)
+     */
+    public boolean hasLocalBranch(String branch) throws GitAPIException {
+	if(!branch.startsWith(REF_BRANCH_SUFFIX))
+	    branch = REF_BRANCH_SUFFIX + branch;
+	List<Ref> refs = mGit.branchList()
+	    .call();
+	for(Ref ref : refs) {
+	    if(ref.getName().equals(branch))
+		return true;
+	}
+	return false;
+    }
+
+    /**
+     * Deletes remote branch (which may or may not be cloned)
+     */
+    public boolean deleteRemoteBranch(String branch) throws GitAPIException {
+	// Create branch ref spec.
+	if(!branch.startsWith(REF_BRANCH_SUFFIX))
+	    branch = REF_BRANCH_SUFFIX + branch;
+	RefSpec branchRefSpec = new RefSpec()
+	    .setSource(null)
+	    .setDestination(branch);
+	
+	// Delete remote branch
+	mGit.push()
+	    .setCredentialsProvider(getCredentialsProvider())
+	    .setRemote(REMOTE_NAME)
+	    .setRefSpecs(branchRefSpec)
+	    .call();
+	return true;
+    }
+    
     /**
      * Creates a new local branch.
      *

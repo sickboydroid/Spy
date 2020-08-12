@@ -44,11 +44,9 @@ public class Server {
 
 	// Pull master, app_data and device branch
 	XLog.v(TAG, "reloadData(): Pulling '" + ServerManager.BRANCH_MASTER + "'");
-	mGitRepo.pull(ServerManager.BRANCH_MASTER);
-	XLog.v(TAG, "reloadData(): Pulling '" + ServerManager.BRANCH_APP_DATA + "'");
-	mGitRepo.pull(ServerManager.BRANCH_APP_DATA);
+        openDir(Dir.MAIN).loadChanges();
 	XLog.v(TAG, "reloadData(): Pulling '" + mDeviceBranch + "'");
-	mGitRepo.pull(mDeviceBranch);
+        openDir(Dir.DEVICE).loadChanges();
 	XLog.v(TAG, "All branches successfully pulled!");
 	return true;
     }
@@ -66,10 +64,22 @@ public class Server {
 	switch(dir) {
 	case MAIN:
 	    hasCheckedOut = mGitRepo.checkout(ServerManager.BRANCH_MASTER);
+            break;
 	case APP_DATA:
-	    hasCheckedOut = mGitRepo.checkout(ServerManager.BRANCH_APP_DATA);
+            if(mGitRepo.hasLocalBranch(ServerManager.BRANCH_APP_DATA))
+                hasCheckedOut = mGitRepo.checkout(ServerManager.BRANCH_APP_DATA);
+            else {
+                if(mGitRepo.fetchBranch(ServerManager.BRANCH_APP_DATA)) {
+                        if(mGitRepo.setRemoteTrackingBranch(ServerManager.BRANCH_APP_DATA,
+                                                            ServerManager.BRANCH_APP_DATA)) {
+                            hasCheckedOut = mGitRepo.checkout(ServerManager.BRANCH_APP_DATA);
+                        }
+                    }
+            }
+            break;
 	case DEVICE:
 	    hasCheckedOut = mGitRepo.checkout(mDeviceBranch);
+            break;
 	}
 	if(hasCheckedOut)
 	    return new Directory(mGitRepo);
@@ -102,6 +112,20 @@ public class Server {
 	    }
 	    return false;
 	}
+
+        /**
+         * Pulls the data for currently opened directory
+         */
+        public boolean loadChanges() throws GitAPIException {
+            if(saveChanges()) {
+                XLog.v(TAG, "Pulling changes from remote");
+                if(mGitRepo.pull()) {
+                    XLog.v(TAG, "Changes pulled");
+                    return true;
+                }
+            }
+            return false;
+        }
 
 	/**
 	 * Closes opened directory.

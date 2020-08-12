@@ -11,29 +11,31 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * This utility compresses a list of files to standard ZIP format file.
- * It is able to compress all sub files and sub directories, recursively.
- * @author game-of-coding
- *
  */
 public class ZipUtils {
-    /**
-     * A constants for buffer size used to read/write data
-     */
+    private static final String TAG = "ZipUtils";
     private static final int BUFFER_SIZE = 4096;
+
+    public void zip(File[] files, File destZipFile) throws FileNotFoundException, IOException {
+	zip(files, destZipFile, false);
+    }
     /**
      * Compresses files represented in an array of paths
-     * @param files a String array containing file paths
-     * @param destZipFile The path of the destination zip file
-     * @throws FileNotFoundException
-     * @throws IOException
      */
-    public void zip(File[] files, File destZipFile) throws FileNotFoundException, IOException {
+    public void zip(File[] files, File destZipFile, boolean deleteZipped) throws FileNotFoundException,
+										 IOException {
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(destZipFile));
         for (File file : files) {
             if (file.isDirectory()) {
                 zipDirectory(file, file.getName(), zos);
+		if(deleteZipped)
+		    if(!FileUtils.delete(file))
+			XLog.w(TAG, "Added dir could not be deleted, dir=" + file);
             } else {
                 zipFile(file, zos);
+		if(deleteZipped)
+		    if(!file.delete())
+			XLog.w(TAG, "Added file could not be deleted, file=" + file);
             }
         }
         zos.flush();
@@ -41,11 +43,6 @@ public class ZipUtils {
     }
     /**
      * Adds a directory to the current zip output stream
-     * @param folder the directory to be  added
-     * @param parentFolder the path of parent directory
-     * @param zos the current zip output stream
-     * @throws FileNotFoundException
-     * @throws IOException
      */
     private void zipDirectory(File folder, String parentFolder,
             ZipOutputStream zos) throws FileNotFoundException, IOException {
@@ -68,10 +65,6 @@ public class ZipUtils {
     }
     /**
      * Adds a file to the current zip output stream
-     * @param file the file to be added
-     * @param zos the current zip output stream
-     * @throws FileNotFoundException
-     * @throws IOException
      */
     private void zipFile(File file, ZipOutputStream zos)
             throws FileNotFoundException, IOException {

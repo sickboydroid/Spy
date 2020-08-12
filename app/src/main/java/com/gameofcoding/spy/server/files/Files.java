@@ -2,9 +2,12 @@ package com.gameofcoding.spy.server.files;
 
 import java.io.File;
 
+/**
+ * Interface for DataFiles and ServerFiles.
+ * <b>DataFiles: It provides the directories where we actually save data.</b>
+ * <b>ServerFiles: It is the repository directory. During upload data is moved
+ * DataFiles into this directory.</b>
+*/
 public interface Files {
-    public static final String DIR_USER_DATA = "user_data";
-    public static final String DIR_OTHERS = "others";
-
     public abstract File getRootDir();
 }
