@@ -4,18 +4,12 @@
   <style name="BaseTheme" parent="@android:style/Theme.Material.Light">
     <item name="android:colorPrimary">@color/primaryColor</item>
     <item name="android:colorAccent">@color/accentColor</item>
-    <item name="android:statusBarColor">@color/white</item>
-    <item name="android:windowLightStatusBar">true</item>
-    <item name="android:actionBarStyle">@style/BaseTheme.ActionBar</item>
   </style>
 
   <!-- Use this Style to change an Activity to Dialog. -->
   <style name="BaseTheme.DialogActivity" parent="@android:style/Theme.Material.Light.Dialog">
   </style>
-  
-  <style name="BaseTheme.ActionBar" parent="@android:style/Widget.Material.Light.ActionBar">
-  </style>
-  
+    
   <!-- Use this Style if you want to hide ActionBar and app label -->
   <style name="BaseTheme.NoActionBar" parent="BaseTheme">
     <item name="android:windowActionBar">false</item>

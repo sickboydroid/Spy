@@ -4,7 +4,4 @@
   <color name="primaryColor">#FF607D8B</color>
   <color name="primaryDarkColor">#FF506873</color>
   <color name="primaryLightColor">#FF7F8F97</color>
-  <color name="lightGray">#ACACAC</color>
-  <color name="white">#ffffff</color> 
-  <color name="black">#000000</color> 
 </resources>
