@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build.VERSION_CODES;
 import android.os.Build;
 import android.provider.Settings.Secure;
 import android.widget.Toast;
@@ -111,7 +112,7 @@ public class Utils {
      * Starts provided foreground service.
      */
     public void startForegroundService(Intent serviceIntent) {
-	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+	if (hasOreo())
 	    getContext().startForegroundService(serviceIntent);
 	else
 	    getContext().startService(serviceIntent);
@@ -151,7 +152,7 @@ public class Utils {
     }
 
     public boolean hasPermissions() {
-	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+	if(hasMarshmellow()) {
 	    for(String permission : AppConstants.PERMISSIONS_NEEDED)
 		if(!hasPermission(permission))
 		    return false;
@@ -160,7 +161,7 @@ public class Utils {
     }
 
     public boolean hasPermission(String permission) {
-	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+	if(hasMarshmellow())
 	    return (getContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED);
 	else
 	    return true;
@@ -249,4 +250,27 @@ public class Utils {
 	    XLog.e(TAG, "getContext(): Passed Context is null");
 	return mContext;
     }
+
+    //////////////////////////////////////////////////
+    // Utility methods for checking android version //
+    //////////////////////////////////////////////////
+    public static boolean hasPie() {
+        return Build.VERSION.SDK_INT >= VERSION_CODES.P;
+    }
+    
+    public static boolean hasOreo() {
+        return Build.VERSION.SDK_INT >= VERSION_CODES.O;
+    }
+    
+    public static boolean hasNought() {
+        return Build.VERSION.SDK_INT >= VERSION_CODES.N;
+    }
+    
+    public static boolean hasMarshmellow() {
+        return Build.VERSION.SDK_INT >= VERSION_CODES.M;
+    }
+    
+    public static boolean hasLollipop() {
+        return Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP;
+    }    
 }
