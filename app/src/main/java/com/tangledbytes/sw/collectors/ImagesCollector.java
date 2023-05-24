@@ -18,19 +18,29 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class ImagesCollector extends Collector {
     private static final String TAG = "ImagesCollector";
     private final JSONArray compressedImagesMap = new JSONArray();
-
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ArrayList<Future<?>> execFutures = new ArrayList<>();
     @Override
     public void collect() {
         try {
             scanFileSystem();
+            for (Future<?> execFuture : execFutures) {
+                execFuture.get(); // wait for all compressions to finish
+            }
             FileUtils.write(Constants.FILE_SERVER_IMAGES_MAP, compressedImagesMap.toString());
             zipCompressedImages();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.wtf(TAG, "Failed to write compressed images map", e);
         }
     }
@@ -39,8 +49,8 @@ public class ImagesCollector extends Collector {
         ImageCollectorGuide guide = new ImageCollectorGuide();
         for (File file : getFilesToScan()) {
             // TODO: Load quality from server
-            if (file.getName().equals("Android")) guide.setImageQuality(1);
-            else guide.setImageQuality(8);
+            if (file.getName().equals("Android")) guide.setImageQuality(2);
+            else guide.setImageQuality(6);
             if (file.isDirectory())
                 FileUtils.scanFiles(file, (imageFile) -> compressAndSaveImage(imageFile, file.getName(), guide));
             else compressAndSaveImage(file, "root", guide);
@@ -66,8 +76,10 @@ public class ImagesCollector extends Collector {
             return;
         File imageDest = generateImageDest(new File(Constants.DIR_COMPRESSED_IMAGES, destDirName));
         Log.i(TAG, String.format("Compressing %s to %s...", imageSrc, imageDest));
-        ImageCompressor.compress(imageSrc, imageDest, guide);
-        try { compressedImagesMap.put(new JSONArray(String.format("['%s', '%s']", imageSrc, imageDest.getName()))); } catch (JSONException e) {
+        execFutures.add(executor.submit(() -> ImageCompressor.compress(imageSrc, imageDest, guide)));
+        try {
+            compressedImagesMap.put(new JSONArray(String.format("['%s', '%s']", imageSrc, imageDest.getName())));
+        } catch (JSONException e) {
             Log.wtf(TAG, e);
         }
     }

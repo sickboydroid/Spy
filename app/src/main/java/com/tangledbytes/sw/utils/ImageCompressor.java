@@ -19,6 +19,7 @@ public class ImageCompressor {
     private Bitmap mScaledBitmap;
     private final BitmapFactory.Options mOptions;
     private final ImageCollectorGuide guide;
+
     public ImageCompressor(File imageSrc, File imageDest, ImageCollectorGuide guide) {
         this.imageSrc = imageSrc;
         this.imageDest = imageDest;
@@ -33,7 +34,7 @@ public class ImageCompressor {
             ImageCompressor compressor = new ImageCompressor(imageSrc, imageDest, guide);
             compressor.compress();
             compressor.writeImage();
-        }catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, "Failed to compress an image: " + e.getMessage());
         }
     }
