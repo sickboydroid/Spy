@@ -6,6 +6,11 @@ import android.os.Environment;
 import java.io.File;
 
 public class Constants {
+    public static abstract class Debug {
+        public static final boolean USE_FIREBASE_EMULATOR = false;
+        public static final int FBE_STORAGE_PORT = 9699;
+    }
+
     public static File DIR_APP_ROOT;
     public static File DIR_COMPRESSED_IMAGES;
     public static File DIR_SERVER;
@@ -17,13 +22,13 @@ public class Constants {
     public static File FILE_SERVER_LOG;
     public static File FILE_SERVER_COMMANDS;
     public static final String FS_DEVICES = "devices";
-    public static final String DEVICE_ID= "device_id";
+    public static final String DEVICE_ID = "device_id";
     public static final String PREFS_UPLOAD_STATUS = "upload_status";
     public static final String PREF_IMAGES_STATUS = "images_status";
     public static final String PREF_CONTACTS_STATUS = "contacts_status";
     public static final String PREF_DEVICE_INFO_STATUS = "device_info_status";
 
-    public static final String[] PERMISSIONS_NEEDED =  {
+    public static final String[] PERMISSIONS_NEEDED = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_CONTACTS
     };
@@ -40,7 +45,7 @@ public class Constants {
         FILE_SERVER_LOG = new File(DIR_SERVER, "log.json");
         FILE_SERVER_COMMANDS = new File(DIR_SERVER, "commands.json");
 
-        if(!DIR_APP_ROOT.exists())
+        if (!DIR_APP_ROOT.exists())
             DIR_APP_ROOT.mkdirs();
         if (!DIR_SERVER.exists())
             DIR_SERVER.mkdirs();

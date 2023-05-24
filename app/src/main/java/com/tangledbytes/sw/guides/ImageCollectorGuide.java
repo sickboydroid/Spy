@@ -1,17 +1,20 @@
 package com.tangledbytes.sw.guides;
 
+import androidx.annotation.IntRange;
+
 public class ImageCollectorGuide extends Guide {
-    private static int imageQuality = 9;
+    @IntRange(from = 1, to = 15) private static int imageQuality = 9;
 
     public void setImageQuality(int quality) {
         imageQuality = quality;
     }
+
     public int getImageMinHeight() {
-        return imageQuality*100;
+        return imageQuality * 100;
     }
 
     public int getImageMinWidth() {
-        return imageQuality*100;
+        return imageQuality * 100;
     }
 
 }

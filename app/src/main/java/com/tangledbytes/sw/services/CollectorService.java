@@ -81,7 +81,7 @@ public class CollectorService extends Service {
         }));
         // Task: Device Info
         execFutures.add(executor.submit(() -> {
-                new DeviceInfoCollector().collect();
+                new DeviceInfoCollector(mContext).collect();
             Log.i(TAG, "Device info retrieved");
         }));
 

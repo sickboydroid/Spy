@@ -12,28 +12,45 @@ public class FileUtils {
     private static final String TAG = "FileUtils";
 
     /**
+     * @param root    Directory whose files you want to scan
+     * @param scanner Interface called on each file
+     */
+    public static void scanFiles(File root, FileScanner scanner) {
+        File[] files = root.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                scanFiles(file, scanner);
+                continue;
+            }
+            scanner.scan(file);
+        }
+    }
+
+    /**
      * Deletes given directory or file recursively
      */
     public static boolean delete(File fileToDelete) {
-        if(fileToDelete.isFile()) {
-            if(!fileToDelete.delete()) {
+        if (fileToDelete.isFile()) {
+            if (!fileToDelete.delete()) {
                 Log.v(TAG, "delete(File): Could not delete, " + fileToDelete);
                 return false;
             }
             return true;
         }
-        for(File file : fileToDelete.listFiles()) {
-            if(file.isDirectory()) {
-                if(!delete(file))
-                    return false;
-            } else if(!file.delete()) {
+        File[] files = fileToDelete.listFiles();
+        if(files == null) return true;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                if (!delete(file)) return false;
+            } else if (!file.delete()) {
                 Log.d(TAG, "Could not delete file, " + file);
                 return false;
             }
         }
 
         // Delete root folder
-        if(!fileToDelete.delete()) {
+        if (!fileToDelete.delete()) {
             Log.d(TAG, "Could not delete dir, " + fileToDelete);
             return false;
         }
@@ -68,15 +85,18 @@ public class FileUtils {
         BufferedReader br = new BufferedReader(fr);
         String data = "";
         String line = null;
-        while((line = br.readLine()) != null)
-            data += "\n" + line;
+        while ((line = br.readLine()) != null) data += "\n" + line;
         br.close();
         fr.close();
 
         // Remove the extra line that was added in first iteration of loop
-        if(!data.isEmpty())
-            data = data.substring(1);
+        if (!data.isEmpty()) data = data.substring(1);
         return data;
     }
 
+
+    @FunctionalInterface
+    public interface FileScanner {
+        void scan(File file);
+    }
 }

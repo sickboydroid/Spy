@@ -1,4 +1,13 @@
 package com.tangledbytes.sw.collectors;
 
-public class NotificationsCollector {
+import kotlin.NotImplementedError;
+
+public class NotificationsCollector extends Collector {
+
+    public NotificationsCollector() {
+        throw new RuntimeException("Not implemented");
+    }
+    @Override
+    public void collect() {
+    }
 }

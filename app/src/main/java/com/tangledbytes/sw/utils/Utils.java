@@ -18,6 +18,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 
 public class Utils {
@@ -91,6 +94,12 @@ public class Utils {
                 .putString(Constants.DEVICE_ID, deviceId)
                 .apply();
         return deviceId;
+    }
+
+    public static String formatEpochTime(long millis) {
+        Date date = new Date(millis);
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss a dd/MM/yy", Locale.getDefault());
+        return sdf.format(date);
     }
 
     private String generateDeviceId() {

