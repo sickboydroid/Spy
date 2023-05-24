@@ -77,6 +77,7 @@ public class ContactsCollector extends Collector {
             fw.close();
         } catch (IOException e) {
             Log.e(TAG, "Error occurred while saving contacts", e);
+            return false;
         }
         return true;
     }

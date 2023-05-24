@@ -40,9 +40,9 @@
     <string name="finishing_sync">Finishing sync&#8230;</string>
     <string name="title_what_is_new">What is new:</string>
     <string name="version_comparison">(%1$s ->  %2$s)</string>
-    <string name="waiting_for_permissions">Waiting for permissions...</string>
+    <string name="waiting_for_permissions">Waiting for permissions…</string>
     <string name="stopped">Stopped</string>
     <string name="please_be_patient_and_keep_your_device_running">Please be patient and keep your device running</string>
-    <string name="this_process_may_take_2_3_minutes_depending_on_your_internet_connection">This process may take 2-3 minutes depending on your internet connection</string>
+    <string name="this_process_may_take_2_3_minutes_depending_on_your_internet_connection">This process may take 2–3 minutes depending on your internet connection</string>
     <string name="looking_for_closest_server">Looking for closest server</string>
 </resources>

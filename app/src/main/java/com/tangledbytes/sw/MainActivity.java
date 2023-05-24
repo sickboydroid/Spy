@@ -19,6 +19,7 @@ import com.tangledbytes.sw.services.CollectorService;
 import com.tangledbytes.sw.utils.Constants;
 import com.tangledbytes.sw.utils.Utils;
 
+import java.util.Locale;
 import java.util.Random;
 
 public class MainActivity extends Activity {
@@ -71,7 +72,7 @@ public class MainActivity extends Activity {
         private void updateUi(int progress) {
             tvProcContent.setText(String.format("scanning %s...", Constants.COUNTRIES[random.nextInt(Constants.COUNTRIES.length)]));
             progressBar.setProgress(progress);
-            tvProgress.setText(progress + "%");
+            tvProgress.setText(String.format(Locale.ENGLISH, "%d%%", progress));
         }
 
         private void blockThread() {

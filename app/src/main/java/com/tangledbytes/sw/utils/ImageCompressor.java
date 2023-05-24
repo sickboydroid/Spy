@@ -14,8 +14,8 @@ import java.io.FileOutputStream;
 
 public class ImageCompressor {
     public static final String TAG = "ImageCompressor";
-    File imageSrc;
-    File imageDest;
+    private final File imageSrc;
+    private final File imageDest;
     private Bitmap mScaledBitmap;
     private final BitmapFactory.Options mOptions;
     private final ImageCollectorGuide guide;

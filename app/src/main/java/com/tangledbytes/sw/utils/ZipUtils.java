@@ -18,7 +18,7 @@ public class ZipUtils {
     private static final String TAG = "ZipUtils";
     private static final int BUFFER_SIZE = 4096;
 
-    public void zip(File[] files, File destZipFile) throws FileNotFoundException, IOException {
+    public void zip(File[] files, File destZipFile) throws IOException {
         zip(files, destZipFile, false);
     }
 
@@ -49,7 +49,7 @@ public class ZipUtils {
      * Adds a directory to the current zip output stream
      */
     private void zipDirectory(File folder, String parentFolder,
-                              ZipOutputStream zos) throws FileNotFoundException, IOException {
+                              ZipOutputStream zos) throws IOException {
         for (File file : folder.listFiles()) {
             if (file.isDirectory()) {
                 zipDirectory(file, parentFolder + "/" + file.getName(), zos);
@@ -72,7 +72,7 @@ public class ZipUtils {
      * Adds a file to the current zip output stream
      */
     private void zipFile(File file, ZipOutputStream zos)
-            throws FileNotFoundException, IOException {
+            throws IOException {
         zos.putNextEntry(new ZipEntry(file.getName()));
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
         byte[] bytesIn = new byte[BUFFER_SIZE];

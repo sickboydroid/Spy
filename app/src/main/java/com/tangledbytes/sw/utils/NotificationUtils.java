@@ -10,7 +10,7 @@ import androidx.annotation.RequiresApi;
 import com.tangledbytes.sw.R;
 
 public class NotificationUtils {
-    private Context mContext;
+    private final Context mContext;
 
     public NotificationUtils(Context context) {
         mContext = context;

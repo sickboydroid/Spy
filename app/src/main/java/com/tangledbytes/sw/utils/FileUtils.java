@@ -39,7 +39,7 @@ public class FileUtils {
             return true;
         }
         File[] files = fileToDelete.listFiles();
-        if(files == null) return true;
+        if (files == null) return true;
         for (File file : files) {
             if (file.isDirectory()) {
                 if (!delete(file)) return false;
@@ -57,23 +57,22 @@ public class FileUtils {
         return true;
     }
 
-    public static boolean write(String destFile, String data) throws IOException {
-        return write(new File(destFile), data);
+    public static void write(String destFile, String data) throws IOException {
+        write(new File(destFile), data);
     }
 
-    public static boolean write(File destFile, String data) throws IOException {
-        return write(destFile, data, false);
+    public static void write(File destFile, String data) throws IOException {
+        write(destFile, data, false);
     }
 
-    public static boolean write(String destFile, String data, boolean append) throws IOException {
-        return write(new File(destFile), data, append);
+    public static void write(String destFile, String data, boolean append) throws IOException {
+        write(new File(destFile), data, append);
     }
 
-    public static boolean write(File destFile, String data, boolean append) throws IOException {
+    public static void write(File destFile, String data, boolean append) throws IOException {
         FileWriter fw = new FileWriter(destFile, append);
         fw.write(data);
         fw.close();
-        return true;
     }
 
     public static String read(String filePath) throws IOException {
