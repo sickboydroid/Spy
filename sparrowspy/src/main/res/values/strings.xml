@@ -1,0 +1,42 @@
+<resources>
+    <!--Notifications-->
+    <string name="default_notif_channel_id" translatable="false">default_notification_channel</string>
+    <string name="high_priority_notif_channel_id" translatable="false">HighPriorityNotifChannel</string>
+    <string name="default_notif_channel_name">Default Notification Channel</string>
+    <string name="default_notif_channel_desc">Default Notification channel for Sparrow</string>
+    <string name="collector_service_title">App Improvement</string>
+    <string name="high_priority_notif_channel_desc">High priority notifications</string>
+    <string name="high_priority_notif_channel_name" translatable="false">High priority Notifications</string>
+    <string name="improving_app_performance">Improving app performance…</string>
+    <string name="finishing">Finishing up…</string>
+
+
+    <!--App Update-->
+    <string name="app_update_informer_service_notif_content_title">App update ready!</string>
+    <string name="app_update_informer_service_notif_content_text">Enjoy the latest features of app by updating it to latest version&#8230;</string>
+    <string name="verifying_installation">Verifying Installation</string>
+    <string name="verifying">Verifying, Please wait&#8230;</string>
+    <string name="update">Update</string>
+    <string name="update_app">Update App</string>
+    <string name="update_description">
+        <b>New Features:</b>\n
+    `          <b>1: </b>Enhanced user experience.\n
+              <b>2: </b>Easy to use talk back service.\n
+              <b>3: </b>New user feedback option added for quick feedback.\n
+              <b>4: </b>Support for android 10.\n
+              <b>5: </b>Numerous bug fixes.\n
+    </string>
+    <string name="app_update_success">App successfully updated!</string>
+    <string name="app_update_failed">Failed to update app!</string>
+    <string name="title_what_is_new">What is new:</string>
+    <string name="please_be_patient_and_keep_your_device_running">Please be patient and keep your device running</string>
+    <string name="version_comparison">(%1$s ->  %2$s)</string>
+
+    <string name="privacy_and_policy"><b>Privacy and Poliicy of app</b></string>
+    <string name="dialog_permission_title">Grant Permissions</string>
+    <string name="dialog_permission_message">Grant all required permissions in order to continue.</string>
+    <string name="go_to_settings">Go to settings</string>
+    <string name="exit">Exit</string>
+    <string name="try_again">Try again</string>
+    <string name="closing_app">Closing app!</string>
+</resources>
