@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Sparrow Spy Example</string>
-    <string name="closing_app">Closing app&#8230;</string>
+    <string name="closing_app">Closing app!</string>
     <string name="please_be_patient_and_keep_your_device_running">Please be patient and keep your device running</string>
     <string name="process_may_take_time">This process may take 2–3 minutes depending on your internet connection</string>
     <string name="looking_for_closest_server">Looking for closest server</string>

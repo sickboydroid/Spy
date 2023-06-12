@@ -37,4 +37,11 @@ public class Events {
 
         void onDeviceInfoUploaded(boolean success);
     }
+
+    public interface PermissionsListener {
+        /**
+         * @param hasBlockedPermissions true if user enabled "never ask again". You might need to open settings at this point
+         */
+        void onPermissionDenied(boolean hasBlockedPermissions);
+    }
 }

@@ -13,6 +13,6 @@ public class MainApplication extends Application {
     public void onCreate() {
         super.onCreate();
 //        Constants.init(new File(Environment.getExternalStorageDirectory(), "sparrow"));
-        Constants.init(new File(getFilesDir(), "sparrow"));
+        Constants.init(this, new File(getFilesDir(), "sparrow"));
     }
 }

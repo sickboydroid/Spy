@@ -102,6 +102,16 @@ public class Utils {
         return sdf.format(date);
     }
 
+    public static void sleep(long millis) {
+        synchronized (Utils.class) {
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     private String generateDeviceId() {
         // Generate device id
         @SuppressLint("HardwareIds")
@@ -124,5 +134,6 @@ public class Utils {
             Log.e(TAG, "getContext(): Passed Context is null");
         return mContext;
     }
+
 }
 

