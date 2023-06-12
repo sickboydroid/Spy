@@ -125,9 +125,7 @@ public class MainActivity extends Activity {
                 .setMessage("No internet connection detected. Please enable internet in order continue. Click retry to recheck.\nThank you")
                 .setCancelable(false)
                 .setNegativeButton("Retry",
-                        (dialog, whichButton) -> {
-                            noInternetDialogVisible = false;
-                        });
+                        (dialog, whichButton) -> noInternetDialogVisible = false);
         noInternetDialog.show();
     }
 
