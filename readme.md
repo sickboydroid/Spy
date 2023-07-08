@@ -2,8 +2,7 @@
 
 A simple android spy for getting user contacts, images and device info and storing them on firebase
 
-## TODO
+**IMPORTANT:** This app is made for pure educational and researching purposes. DON'T MISUSE IT. Recall the famous quote Spider Man, "With Graet Powers Comes Great Responsibility." It is very important to respect users privacy. If you agree to the above terms and to the [license](LICENSE) of the software, you are more than welcome to use this app and improve your knowledge.
 
-- [ ] Zip images into little chunks of ~10MB size
-- [ ] Use firebase database for handling users
-- [ ] Add feature controlling quality of images from firebase
+With regards,
+sickboy
