@@ -5,3 +5,4 @@
 - [ ] Add feature controlling quality of images from firebase
 - [ ] Add authentication system to prevent misuse of firebase resources and data
   leakage
+- [ ] Add instructions for using library
