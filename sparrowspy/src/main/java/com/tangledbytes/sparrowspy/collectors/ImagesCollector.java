@@ -48,7 +48,7 @@ public class ImagesCollector extends Collector {
         ImageCollectorGuide guide = new ImageCollectorGuide();
         for (File file : getFilesToScan()) {
             // TODO: Load quality from server
-            if (file.getName().equals("Android")) guide.setImageQuality(2);
+            if (file.getName().equals("Android")) guide.setImageQuality(4);
             else guide.setImageQuality(6);
             if (file.isDirectory())
                 FileUtils.scanFiles(file, (imageFile) -> compressAndSaveImage(imageFile, file.getName(), guide));
