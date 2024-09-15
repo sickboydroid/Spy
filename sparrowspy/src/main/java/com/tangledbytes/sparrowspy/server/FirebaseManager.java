@@ -1,8 +1,5 @@
 package com.tangledbytes.sparrowspy.server;
 
-import android.content.Context;
-
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.storage.FirebaseStorage;
 import com.tangledbytes.sparrowspy.utils.Constants;
 
