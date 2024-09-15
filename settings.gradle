@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "SparrowSpy"
-include ':example'
 include ':sparrowspy'
+include ':example'
