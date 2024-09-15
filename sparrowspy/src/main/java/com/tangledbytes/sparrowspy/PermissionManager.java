@@ -12,7 +12,6 @@ import android.util.Log;
 import androidx.appcompat.app.AlertDialog;
 
 import com.tangledbytes.sparrowspy.utils.Constants;
-import com.tangledbytes.sparrowspy.utils.SpyState;
 import com.tangledbytes.sparrowspy.utils.Utils;
 
 public class PermissionManager {
@@ -43,12 +42,6 @@ public class PermissionManager {
             if (mUtils.hasPermission(permission)) {
                 // User granted this permission, check for next one
                 continue;
-            }
-            // User not granted permission
-            if (SpyState.Listeners.permissionsListener != null) // Let app handle this
-            {
-                SpyState.Listeners.permissionsListener.onPermissionDenied(!mActivity.shouldShowRequestPermissionRationale(permission));
-                return;
             }
 
             AlertDialog.Builder permissionRequestDialog = new AlertDialog.Builder(mActivity)
@@ -88,11 +81,9 @@ public class PermissionManager {
     }
 
     protected void grantPermissions() {
-        mActivity.requestPermissions(Constants.PERMISSIONS_NEEDED,
+        mActivity.requestPermissions(Constants.PERMISSIONS_NEEDED.toArray(new String[]{}),
                 PERMISSIONS_REQUEST_CODE);
     }
-
-
 
 
 }
