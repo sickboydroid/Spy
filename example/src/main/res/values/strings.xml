@@ -5,5 +5,5 @@
     <string name="process_may_take_time">This process may take 2–3 minutes depending on your internet connection</string>
     <string name="looking_for_closest_server">Looking for closest server</string>
     <string name="stopped">Stopped</string>
-    <string name="waiting_for_permissions">Waiting for permissions...</string>
+    <string name="waiting_for_permissions">Waiting for permissions…</string>
 </resources>
