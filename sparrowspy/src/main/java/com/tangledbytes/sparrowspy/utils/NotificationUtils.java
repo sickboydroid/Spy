@@ -22,7 +22,7 @@ public class NotificationUtils {
         String channelName = mContext.getString(R.string.default_notif_channel_name);
         String channelDesc = mContext.getString(R.string.default_notif_channel_desc);
             return createNotificationChannel(channelId, channelName, channelDesc,
-                    NotificationManager.IMPORTANCE_MIN);
+                    NotificationManager.IMPORTANCE_LOW);
     }
 
     public String getDefaultNotifChannelId() {

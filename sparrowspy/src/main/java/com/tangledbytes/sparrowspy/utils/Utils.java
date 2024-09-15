@@ -1,18 +1,15 @@
 package com.tangledbytes.sparrowspy.utils;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -43,7 +40,7 @@ public class Utils {
         // Reads output of command
         final BufferedReader brStdOutput =
                 new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        // Reads error output (if error occured) of command
+        // Reads error output (if error occurred) of command
         final BufferedReader brErrOutput =
                 new BufferedReader(new InputStreamReader(proc.getErrorStream()));
         StringBuilder output = new StringBuilder();
@@ -78,6 +75,7 @@ public class Utils {
             return false;
         }
     }
+
     public boolean hasPermission(String permission) {
         return getContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
     }
@@ -125,7 +123,7 @@ public class Utils {
         String deviceModel = Build.MODEL;
         String deviceManufacturer = Build.MANUFACTURER;
         deviceId = deviceManufacturer + "_" + deviceModel + "_" + deviceId;
-        deviceId = deviceId.replaceAll("(?![0-9]|[A-z]|_)(.)", "");
+        deviceId = deviceId.replaceAll("[^0-9A-Za-z_]", "");
         return deviceId;
     }
 
@@ -136,4 +134,3 @@ public class Utils {
     }
 
 }
-

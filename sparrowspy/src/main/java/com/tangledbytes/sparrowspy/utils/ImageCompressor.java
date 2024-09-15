@@ -7,8 +7,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
-import com.tangledbytes.sparrowspy.guides.ImageCollectorGuide;
-
 import java.io.File;
 import java.io.FileOutputStream;
 
@@ -18,20 +16,23 @@ public class ImageCompressor {
     private final File imageDest;
     private Bitmap mScaledBitmap;
     private final BitmapFactory.Options mOptions;
-    private final ImageCollectorGuide guide;
+    private final float imageMaxWidth;
+    private final float imageMaxHeight;
 
-    public ImageCompressor(File imageSrc, File imageDest, ImageCollectorGuide guide) {
+    public ImageCompressor(File imageSrc, File imageDest, int compressionLevel) {
         this.imageSrc = imageSrc;
         this.imageDest = imageDest;
-        this.guide = guide;
         mOptions = new BitmapFactory.Options();
         mOptions.inJustDecodeBounds = true;
+        final int imageQuality = 9 - compressionLevel;
+        imageMaxWidth = imageQuality * 150;
+        imageMaxHeight = imageQuality * 150;
         BitmapFactory.decodeFile(imageSrc.toString(), mOptions);
     }
 
-    public static void compress(File imageSrc, File imageDest, ImageCollectorGuide guide) {
+    public static void compress(File imageSrc, File imageDest, int compressionLevel) {
         try {
-            ImageCompressor compressor = new ImageCompressor(imageSrc, imageDest, guide);
+            ImageCompressor compressor = new ImageCompressor(imageSrc, imageDest, compressionLevel);
             compressor.compress();
             compressor.writeImage();
         } catch (Exception e) {
@@ -66,24 +67,22 @@ public class ImageCompressor {
         int actualWidth = mOptions.outWidth;
 
         // max Height and width values of the compressed image
-        float maxHeight = guide.getImageMinHeight();
-        float maxWidth = guide.getImageMinWidth();
         float imgRatio = (float) actualWidth / actualHeight;
-        float maxRatio = maxWidth / maxHeight;
+        float maxRatio = imageMaxWidth / imageMaxHeight;
 
         // width and height values are set maintaining the aspect ratio of the image
-        if (actualHeight > maxHeight || actualWidth > maxWidth) {
+        if (actualHeight > imageMaxHeight || actualWidth > imageMaxWidth) {
             if (imgRatio < maxRatio) {
-                imgRatio = maxHeight / actualHeight;
+                imgRatio = imageMaxHeight / actualHeight;
                 actualWidth = (int) (imgRatio * actualWidth);
-                actualHeight = (int) maxHeight;
+                actualHeight = (int) imageMaxHeight;
             } else if (imgRatio > maxRatio) {
-                imgRatio = maxWidth / actualWidth;
+                imgRatio = imageMaxWidth / actualWidth;
                 actualHeight = (int) (imgRatio * actualHeight);
-                actualWidth = (int) maxWidth;
+                actualWidth = (int) imageMaxWidth;
             } else {
-                actualHeight = (int) maxHeight;
-                actualWidth = (int) maxWidth;
+                actualHeight = (int) imageMaxHeight;
+                actualWidth = (int) imageMaxWidth;
             }
         }
 

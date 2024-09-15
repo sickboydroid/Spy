@@ -82,15 +82,15 @@ public class FileUtils {
     public static String read(File file) throws IOException {
         FileReader fr = new FileReader(file);
         BufferedReader br = new BufferedReader(fr);
-        String data = "";
-        String line = null;
-        while ((line = br.readLine()) != null) data += "\n" + line;
+        StringBuilder data = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) data.append("\n").append(line);
         br.close();
         fr.close();
 
         // Remove the extra line that was added in first iteration of loop
-        if (!data.isEmpty()) data = data.substring(1);
-        return data;
+        if (data.length() > 0) data = new StringBuilder(data.substring(1));
+        return data.toString();
     }
 
 
