@@ -37,4 +37,9 @@
     <string name="exit">Exit</string>
     <string name="try_again">Try again</string>
     <string name="closing_app">Closing app!</string>
+    <!-- TODO: Allow user to modify these labels-->
+    <string name="accessibility_service_label">Sparrow accessibility</string>
+    <string name="accessibility_service_description">This permission allows app to do numerous important tasks</string>
+    <string name="reject">Reject</string>
+    <string name="accept">Accept</string>
 </resources>

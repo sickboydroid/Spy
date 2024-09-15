@@ -1,7 +1,5 @@
 package com.tangledbytes.sparrowspy.collectors;
 
-import kotlin.NotImplementedError;
-
 public class NotificationsCollector extends Collector {
 
     public NotificationsCollector() {
