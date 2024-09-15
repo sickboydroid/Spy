@@ -72,7 +72,7 @@ public class ContactsCollector extends Collector {
 
     private boolean saveContacts() {
         try {
-            FileWriter fw = new FileWriter(Constants.FILE_SERVER_CONTACTS);
+            FileWriter fw = new FileWriter(Constants.FILE_UPLOAD_CONTACTS);
             fw.write(contacts.toString());
             fw.close();
         } catch (IOException e) {
